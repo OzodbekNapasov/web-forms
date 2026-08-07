@@ -94,24 +94,7 @@ export default function SurveyResponsesPage({ params }: { params: Promise<{ id: 
       sheetsConfig?.spreadsheet_id ||
       "1_EI6IL_n3Tgf6tUEXJrFm2Fsk4fjdL-oh-nB791slZ8";
 
-    const rowData: Record<string, any> = {
-      Vaqti: new Date(resp.completed_at || Date.now()).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" }),
-      Javob_ID: resp.submission_id,
-      So_rovnoma: survey.title,
-    };
-
-    if (survey.questions) {
-      survey.questions.forEach((q) => {
-        const ans = resp.answers?.find((a) => a.question_id === q.id);
-        const colLabel = q.label ? q.label.trim() : q.id;
-        rowData[colLabel] =
-          ans && ans.value !== undefined
-            ? typeof ans.value === "object"
-              ? JSON.stringify(ans.value)
-              : String(ans.value)
-            : "";
-      });
-    }
+    const rowData = SurveyService.buildRowDataForGoogleSheets(survey, resp);
 
     try {
       const res = await fetch("/api/sync/google-sheets", {
@@ -162,24 +145,7 @@ export default function SurveyResponsesPage({ params }: { params: Promise<{ id: 
     let successCount = 0;
 
     for (const resp of filteredResponses) {
-      const rowData: Record<string, any> = {
-        Vaqti: new Date(resp.completed_at || Date.now()).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" }),
-        Javob_ID: resp.submission_id,
-        So_rovnoma: survey.title,
-      };
-
-      if (survey.questions) {
-        survey.questions.forEach((q) => {
-          const ans = resp.answers?.find((a) => a.question_id === q.id);
-          const colLabel = q.label ? q.label.trim() : q.id;
-          rowData[colLabel] =
-            ans && ans.value !== undefined
-              ? typeof ans.value === "object"
-                ? JSON.stringify(ans.value)
-                : String(ans.value)
-              : "";
-        });
-      }
+      const rowData = SurveyService.buildRowDataForGoogleSheets(survey, resp);
 
       try {
         const res = await fetch("/api/sync/google-sheets", {

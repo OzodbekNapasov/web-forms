@@ -249,6 +249,73 @@ export class SurveyService {
     } catch {}
   }
 
+  public static buildRowDataForGoogleSheets(
+    survey: Survey | null,
+    resp: SurveyResponse
+  ): Record<string, any> {
+    const rowData: Record<string, any> = {
+      Vaqti: new Date(resp.completed_at || Date.now()).toLocaleString("uz-UZ", {
+        timeZone: "Asia/Tashkent",
+      }),
+      Javob_ID: resp.submission_id,
+      "Javob ID": resp.submission_id,
+      So_rovnoma: survey?.title || resp.survey_id,
+      "So'rovnoma": survey?.title || resp.survey_id,
+      "Soʻrovnoma": survey?.title || resp.survey_id,
+      Holati: "Topshirildi",
+    };
+
+    if (resp.respondent_meta) {
+      if (resp.respondent_meta.group) {
+        rowData["Guruhingiz"] = resp.respondent_meta.group;
+        rowData["Guruh"] = resp.respondent_meta.group;
+      }
+      if (resp.respondent_meta.course) {
+        rowData["Yo'nalish"] = resp.respondent_meta.course;
+        rowData["Yoʻnalish"] = resp.respondent_meta.course;
+      }
+    }
+
+    if (survey && survey.questions && survey.questions.length > 0) {
+      survey.questions.forEach((q) => {
+        const ans = resp.answers?.find((a) => a.question_id === q.id);
+        const val =
+          ans && ans.value !== undefined
+            ? typeof ans.value === "object"
+              ? JSON.stringify(ans.value)
+              : String(ans.value)
+            : "";
+
+        if (q.label) {
+          const rawLabel = q.label.trim();
+          rowData[rawLabel] = val;
+
+          const asciiLabel = rawLabel.replace(/[ʻ’`]/g, "'");
+          rowData[asciiLabel] = val;
+
+          const unicodeLabel = rawLabel.replace(/'/g, "ʻ");
+          rowData[unicodeLabel] = val;
+
+          const underscoreLabel = asciiLabel.replace(/'/g, "_");
+          rowData[underscoreLabel] = val;
+        }
+
+        rowData[q.id] = val;
+      });
+    }
+
+    if (resp.answers) {
+      resp.answers.forEach((a) => {
+        if (a.question_id && rowData[a.question_id] === undefined) {
+          rowData[a.question_id] =
+            typeof a.value === "object" ? JSON.stringify(a.value) : String(a.value);
+        }
+      });
+    }
+
+    return rowData;
+  }
+
   private static async syncResponseToGoogleSheets(surveyId: string, resp: SurveyResponse): Promise<void> {
     try {
       const survey = this.getSurveyById(surveyId);
@@ -262,28 +329,7 @@ export class SurveyService {
         this.getSheetsConfig(surveyId)?.spreadsheet_id ||
         "1_EI6IL_n3Tgf6tUEXJrFm2Fsk4fjdL-oh-nB791slZ8";
 
-      const rowData: Record<string, any> = {
-        "Vaqti": new Date(resp.completed_at || Date.now()).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" }),
-        "Javob_ID": resp.submission_id,
-        "So'rovnoma": survey?.title || surveyId,
-      };
-
-      if (survey && survey.questions && survey.questions.length > 0) {
-        survey.questions.forEach((q) => {
-          const ans = resp.answers?.find((a) => a.question_id === q.id);
-          const colLabel = q.label ? q.label.trim() : q.id;
-          rowData[colLabel] =
-            ans && ans.value !== undefined
-              ? typeof ans.value === "object"
-                ? JSON.stringify(ans.value)
-                : String(ans.value)
-              : "";
-        });
-      } else if (resp.answers) {
-        resp.answers.forEach((a) => {
-          rowData[a.question_id] = typeof a.value === "object" ? JSON.stringify(a.value) : String(a.value);
-        });
-      }
+      const rowData = this.buildRowDataForGoogleSheets(survey, resp);
 
       await fetch("/api/sync/google-sheets", {
         method: "POST",
