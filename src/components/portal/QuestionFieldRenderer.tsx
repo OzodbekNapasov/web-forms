@@ -255,9 +255,6 @@ export default function QuestionFieldRenderer({
               }`}
             />
           </div>
-          <p className="text-[11px] font-semibold text-slate-500 pl-1">
-            Format: <span className="text-blue-400 font-mono">+998 (XX) XXX-XX-XX</span>
-          </p>
         </div>
       )}
 
