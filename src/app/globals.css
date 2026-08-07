@@ -64,6 +64,21 @@
   }
 }
 
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  color-scheme: dark !important;
+  color: #ffffff !important;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.5) !important;
+  cursor: pointer;
+  opacity: 0.9;
+}
+
 * {
   border-color: hsl(var(--border));
 }

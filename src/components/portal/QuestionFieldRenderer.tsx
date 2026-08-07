@@ -342,9 +342,10 @@ export default function QuestionFieldRenderer({
           <Calendar className="absolute left-3.5 top-3 h-4 w-4 text-amber-400" />
           <Input
             type="date"
+            style={{ colorScheme: "dark" }}
             value={value || ""}
             onChange={(e) => onChange(q.id, e.target.value)}
-            className="pl-10 bg-slate-950 text-white border-slate-700 text-sm"
+            className="pl-10 bg-slate-950 text-white font-medium border-slate-700 text-sm"
           />
         </div>
       )}
@@ -354,9 +355,10 @@ export default function QuestionFieldRenderer({
           <Clock className="absolute left-3.5 top-3 h-4 w-4 text-amber-400" />
           <Input
             type="time"
+            style={{ colorScheme: "dark" }}
             value={value || ""}
             onChange={(e) => onChange(q.id, e.target.value)}
-            className="pl-10 bg-slate-950 text-white border-slate-700 text-sm"
+            className="pl-10 bg-slate-950 text-white font-medium border-slate-700 text-sm"
           />
         </div>
       )}
