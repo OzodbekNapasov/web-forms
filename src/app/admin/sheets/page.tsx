@@ -46,6 +46,8 @@ export default function GoogleSheetsManagerPage() {
       });
     }
 
+    const sheetName = SurveyService.getCleanSheetName(survey.title);
+
     try {
       const res = await fetch("/api/sync/google-sheets", {
         method: "POST",
@@ -53,7 +55,7 @@ export default function GoogleSheetsManagerPage() {
         body: JSON.stringify({
           webhookUrl,
           spreadsheetId,
-          sheetName: "Javoblar",
+          sheetName,
           data: rowData,
         }),
       });

@@ -325,6 +325,12 @@ export class SurveyService {
     return rowData;
   }
 
+  public static getCleanSheetName(surveyTitle?: string): string {
+    if (!surveyTitle || !surveyTitle.trim()) return "Javoblar";
+    const cleaned = surveyTitle.trim().replace(/[/\\[\]?*:]/g, "");
+    return cleaned.slice(0, 30) || "Javoblar";
+  }
+
   private static async syncResponseToGoogleSheets(surveyId: string, resp: SurveyResponse): Promise<void> {
     try {
       const survey = this.getSurveyById(surveyId);
@@ -339,6 +345,7 @@ export class SurveyService {
         "1_EI6IL_n3Tgf6tUEXJrFm2Fsk4fjdL-oh-nB791slZ8";
 
       const rowData = this.buildRowDataForGoogleSheets(survey, resp);
+      const sheetName = this.getCleanSheetName(survey?.title);
 
       await fetch("/api/sync/google-sheets", {
         method: "POST",
@@ -346,7 +353,7 @@ export class SurveyService {
         body: JSON.stringify({
           webhookUrl,
           spreadsheetId,
-          sheetName: "Javoblar",
+          sheetName,
           data: rowData,
         }),
       });

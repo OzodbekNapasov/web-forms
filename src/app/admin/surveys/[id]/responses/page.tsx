@@ -95,6 +95,7 @@ export default function SurveyResponsesPage({ params }: { params: Promise<{ id: 
       "1_EI6IL_n3Tgf6tUEXJrFm2Fsk4fjdL-oh-nB791slZ8";
 
     const rowData = SurveyService.buildRowDataForGoogleSheets(survey, resp);
+    const sheetName = SurveyService.getCleanSheetName(survey?.title);
 
     try {
       const res = await fetch("/api/sync/google-sheets", {
@@ -103,7 +104,7 @@ export default function SurveyResponsesPage({ params }: { params: Promise<{ id: 
         body: JSON.stringify({
           webhookUrl,
           spreadsheetId,
-          sheetName: "Javoblar",
+          sheetName,
           data: rowData,
         }),
       });
@@ -146,6 +147,7 @@ export default function SurveyResponsesPage({ params }: { params: Promise<{ id: 
 
     for (const resp of filteredResponses) {
       const rowData = SurveyService.buildRowDataForGoogleSheets(survey, resp);
+      const sheetName = SurveyService.getCleanSheetName(survey?.title);
 
       try {
         const res = await fetch("/api/sync/google-sheets", {
@@ -154,7 +156,7 @@ export default function SurveyResponsesPage({ params }: { params: Promise<{ id: 
           body: JSON.stringify({
             webhookUrl,
             spreadsheetId,
-            sheetName: "Javoblar",
+            sheetName,
             data: rowData,
           }),
         });
