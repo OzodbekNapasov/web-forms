@@ -13,6 +13,7 @@ import LivePreviewModal from "@/components/builder/LivePreviewModal";
 import TemplatesModal from "@/features/survey-builder/components/TemplatesModal";
 import QuestionLibraryModal from "@/features/survey-builder/components/QuestionLibraryModal";
 import ThemeSelectorModal from "@/features/survey-builder/components/ThemeSelectorModal";
+import ShareSurveyDialog from "@/components/dashboard/ShareSurveyDialog";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -49,6 +50,7 @@ function SurveyBuilderCanvas({ initialSurvey }: { initialSurvey: Survey }) {
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [isThemesOpen, setIsThemesOpen] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
   // Keyboard Shortcuts (Ctrl+Z, Ctrl+Shift+Z, Ctrl+S)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -152,6 +154,14 @@ function SurveyBuilderCanvas({ initialSurvey }: { initialSurvey: Survey }) {
         onOpenThemes={() => setIsThemesOpen(true)}
         onOpenTemplates={() => setIsTemplatesOpen(true)}
         onOpenLibrary={() => setIsLibraryOpen(true)}
+        onOpenShare={() => {
+          if (survey.status === "draft") {
+            const updated = { ...survey, status: "published" as const };
+            updateSurvey(updated);
+            SurveyService.saveSurvey(updated);
+          }
+          setIsShareOpen(true);
+        }}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start">
@@ -199,6 +209,7 @@ function SurveyBuilderCanvas({ initialSurvey }: { initialSurvey: Survey }) {
       <TemplatesModal isOpen={isTemplatesOpen} onClose={() => setIsTemplatesOpen(false)} onSelectTemplate={(tmpl) => updateSurvey({ ...survey, ...tmpl })} />
       <QuestionLibraryModal isOpen={isLibraryOpen} onClose={() => setIsLibraryOpen(false)} onInsertQuestion={(q) => updateSurvey({ ...survey, questions: [...(survey.questions || []), q] })} />
       <ThemeSelectorModal isOpen={isThemesOpen} onClose={() => setIsThemesOpen(false)} currentTheme={survey.theme_config || { primaryColor: "#2563EB", backgroundColor: "#F8FAFC", cardStyle: "glass", fontFamily: "Inter" }} onSelectTheme={(theme) => updateSurvey({ ...survey, theme_config: theme })} />
+      <ShareSurveyDialog survey={survey} isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} />
     </div>
   );
 }

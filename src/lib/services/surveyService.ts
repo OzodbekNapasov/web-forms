@@ -1,7 +1,7 @@
-import { Survey, SurveyResponse, GoogleSheetsConfig, AuditLog } from "@/types/survey";
+import { Survey, SurveyResponse, GoogleSheetsConfig } from "@/types/survey";
 import { generateSubmissionId } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 
-// Clean Empty Production Data Layer
 const DEFAULT_SURVEYS: Survey[] = [];
 const DEFAULT_RESPONSES: SurveyResponse[] = [];
 
@@ -29,21 +29,65 @@ export class SurveyService {
   public static saveSurvey(survey: Survey): Survey {
     const surveys = this.getSurveys();
     const index = surveys.findIndex((s) => s.id === survey.id);
+    const updatedSurvey = {
+      ...survey,
+      id: survey.id || `srv-${Date.now()}`,
+      created_at: survey.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      responses_count: survey.responses_count || 0,
+    };
+
     if (index >= 0) {
-      surveys[index] = { ...survey, updated_at: new Date().toISOString() };
+      surveys[index] = updatedSurvey;
     } else {
-      surveys.unshift({
-        ...survey,
-        id: survey.id || `srv-${Date.now()}`,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        responses_count: 0,
-      });
+      surveys.unshift(updatedSurvey);
     }
+
     if (typeof window !== "undefined") {
       localStorage.setItem(this.STORAGE_KEY_SURVEYS, JSON.stringify(surveys));
     }
-    return survey;
+
+    // Asynchronously sync to Supabase Database in background
+    this.syncSurveyToSupabase(updatedSurvey).catch(() => {});
+
+    return updatedSurvey;
+  }
+
+  private static async syncSurveyToSupabase(survey: Survey): Promise<void> {
+    try {
+      const supabase = createClient();
+      // Upsert survey row
+      await supabase.from("surveys").upsert(
+        {
+          id: survey.id,
+          title: survey.title,
+          description: survey.description || "",
+          status: survey.status || "draft",
+          custom_url: survey.custom_url || survey.id,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "id" }
+      );
+
+      // Upsert questions
+      if (survey.questions && survey.questions.length > 0) {
+        const questionRows = survey.questions.map((q, idx) => ({
+          id: q.id,
+          survey_id: survey.id,
+          type: q.type,
+          label: q.label || "Nomsiz savol",
+          placeholder: q.placeholder || "",
+          help_text: q.help_text || "",
+          required: q.required || false,
+          order_index: idx,
+          updated_at: new Date().toISOString(),
+        }));
+
+        await supabase.from("survey_questions").upsert(questionRows, { onConflict: "id" });
+      }
+    } catch {
+      // Graceful fallback to LocalStorage if Supabase offline or RLS restricted
+    }
   }
 
   public static deleteSurvey(id: string): void {
@@ -51,6 +95,12 @@ export class SurveyService {
     if (typeof window !== "undefined") {
       localStorage.setItem(this.STORAGE_KEY_SURVEYS, JSON.stringify(surveys));
     }
+
+    // Sync deletion to Supabase
+    try {
+      const supabase = createClient();
+      supabase.from("surveys").delete().eq("id", id).then();
+    } catch {}
   }
 
   public static getResponses(surveyId?: string): SurveyResponse[] {
@@ -71,7 +121,11 @@ export class SurveyService {
     return allResponses;
   }
 
-  public static submitResponse(surveyId: string, answers: Record<string, any>, respondentMeta?: Record<string, any>): SurveyResponse {
+  public static submitResponse(
+    surveyId: string,
+    answers: Record<string, any>,
+    respondentMeta?: Record<string, any>
+  ): SurveyResponse {
     const allResponses = this.getResponses();
     const formattedAnswers = Object.entries(answers).map(([questionId, value]) => ({
       question_id: questionId,
@@ -101,7 +155,59 @@ export class SurveyService {
       this.saveSurvey(survey);
     }
 
+    // Asynchronously sync response to Supabase & Google Sheets
+    this.syncResponseToSupabase(newResponse).catch(() => {});
+    this.syncResponseToGoogleSheets(surveyId, newResponse).catch(() => {});
+
     return newResponse;
+  }
+
+  private static async syncResponseToSupabase(resp: SurveyResponse): Promise<void> {
+    try {
+      const supabase = createClient();
+      await supabase.from("responses").upsert(
+        {
+          id: resp.id,
+          survey_id: resp.survey_id,
+          submission_id: resp.submission_id,
+          respondent_meta: resp.respondent_meta || {},
+          status: resp.status || "completed",
+          started_at: resp.started_at,
+          completed_at: resp.completed_at,
+        },
+        { onConflict: "id" }
+      );
+
+      if (resp.answers && resp.answers.length > 0) {
+        const answerRows = resp.answers.map((a) => ({
+          response_id: resp.id,
+          question_id: a.question_id,
+          value: typeof a.value === "object" ? JSON.stringify(a.value) : String(a.value),
+        }));
+        await supabase.from("response_answers").upsert(answerRows);
+      }
+    } catch {}
+  }
+
+  private static async syncResponseToGoogleSheets(surveyId: string, resp: SurveyResponse): Promise<void> {
+    const webhookUrl =
+      process.env.NEXT_PUBLIC_GOOGLE_SHEETS_URL ||
+      this.getSheetsConfig(surveyId)?.webhook_url;
+
+    if (!webhookUrl) return;
+
+    try {
+      await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          survey_id: surveyId,
+          submission_id: resp.submission_id,
+          submitted_at: resp.completed_at,
+          answers: resp.answers,
+        }),
+      });
+    } catch {}
   }
 
   public static getSheetsConfig(surveyId: string): GoogleSheetsConfig | null {

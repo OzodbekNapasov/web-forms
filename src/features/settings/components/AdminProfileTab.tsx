@@ -11,10 +11,10 @@ import { toast } from "sonner";
 
 export default function AdminProfileTab() {
   const { theme, setTheme } = useThemeMode();
-  const [fullName, setFullName] = useState("Chief Academic Administrator");
-  const [email] = useState("admin@edusurvey.edu.uz");
+  const [fullName, setFullName] = useState("Ozodbek");
+  const [email] = useState("ozodbek@edusurvey.uz");
   const [phone, setPhone] = useState("+998 90 123 45 67");
-  const [bio, setBio] = useState("Senior Survey Architect & Platform Administrator");
+  const [bio, setBio] = useState("Platforma Bosh Administratori");
   const [language, setLanguage] = useState("uz");
   const [timezone, setTimezone] = useState("Asia/Tashkent");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);

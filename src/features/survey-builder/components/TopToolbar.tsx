@@ -19,6 +19,7 @@ import {
   CheckCircle2,
   RefreshCw,
   AlertCircle,
+  Share2,
 } from "lucide-react";
 
 interface TopToolbarProps {
@@ -34,6 +35,7 @@ interface TopToolbarProps {
   onOpenThemes: () => void;
   onOpenTemplates: () => void;
   onOpenLibrary: () => void;
+  onOpenShare: () => void;
 }
 
 export default function TopToolbar({
@@ -49,6 +51,7 @@ export default function TopToolbar({
   onOpenThemes,
   onOpenTemplates,
   onOpenLibrary,
+  onOpenShare,
 }: TopToolbarProps) {
   return (
     <div className="sticky top-16 z-30 flex flex-wrap items-center justify-between gap-3 glass-card p-3 rounded-2xl border-slate-800">
@@ -117,6 +120,10 @@ export default function TopToolbar({
 
         <Button variant="outline" size="sm" onClick={onOpenPreview} className="h-8 text-xs gap-1 border-slate-800 bg-slate-900 text-slate-200">
           <Eye className="h-3.5 w-3.5" /> Koʻrish
+        </Button>
+
+        <Button size="sm" onClick={onOpenShare} className="h-8 text-xs gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md">
+          <Share2 className="h-3.5 w-3.5" /> Ulashish
         </Button>
 
         <Button size="sm" onClick={onSave} className="h-8 text-xs gap-1 bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md">

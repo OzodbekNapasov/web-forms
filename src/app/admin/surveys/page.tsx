@@ -9,13 +9,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
-import { Plus, Search, FileText, BarChart3, Edit, Trash2 } from "lucide-react";
+import { Plus, Search, FileText, BarChart3, Edit, Trash2, Share2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import ShareSurveyDialog from "@/components/dashboard/ShareSurveyDialog";
 
 export default function AdminSurveysListPage() {
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [search, setSearch] = useState("");
+  const [shareSurvey, setShareSurvey] = useState<Survey | null>(null);
 
   useEffect(() => {
     setSurveys(SurveyService.getSurveys());
@@ -27,6 +29,15 @@ export default function AdminSurveysListPage() {
       setSurveys(SurveyService.getSurveys());
       toast.success("Soʻrovnoma oʻchirildi.");
     }
+  };
+
+  const handleShareClick = (survey: Survey) => {
+    if (survey.status === "draft") {
+      const updated = { ...survey, status: "published" as const };
+      SurveyService.saveSurvey(updated);
+      setSurveys(SurveyService.getSurveys());
+    }
+    setShareSurvey(survey);
   };
 
   const filtered = surveys.filter((s) => s.title.toLowerCase().includes(search.toLowerCase()));
@@ -99,6 +110,15 @@ export default function AdminSurveysListPage() {
                   <td className="p-3.5 font-semibold text-blue-400">{s.responses_count || 0}</td>
                   <td className="p-3.5 text-slate-400">{formatDate(s.created_at)}</td>
                   <td className="p-3.5 text-right space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleShareClick(s)}
+                      className="h-7 text-xs text-emerald-400 hover:bg-emerald-950/40 gap-1 font-bold"
+                      title="Talabalarga ulashish"
+                    >
+                      <Share2 className="h-3.5 w-3.5" /> Ulashish
+                    </Button>
                     <Link href={`/admin/surveys/builder/${s.id}`}>
                       <Button variant="ghost" size="sm" className="h-7 text-xs text-blue-400"><Edit className="h-3.5 w-3.5" /></Button>
                     </Link>
@@ -116,6 +136,8 @@ export default function AdminSurveysListPage() {
           </table>
         </Card>
       )}
+
+      <ShareSurveyDialog survey={shareSurvey} onClose={() => setShareSurvey(null)} />
     </div>
   );
 }
