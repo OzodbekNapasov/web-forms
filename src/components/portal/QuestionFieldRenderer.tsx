@@ -4,7 +4,7 @@ import React, { useRef, useState } from "react";
 import { Question } from "@/types/survey";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Star, RotateCcw } from "lucide-react";
+import { Star, RotateCcw, CheckSquare, Square, Phone, Calendar, Clock, CreditCard, UserCheck, GraduationCap } from "lucide-react";
 
 interface QuestionFieldRendererProps {
   question: Question;
@@ -12,6 +12,34 @@ interface QuestionFieldRendererProps {
   value: any;
   errorMsg?: string;
   onChange: (questionId: string, value: any) => void;
+}
+
+// ─── Format helper for Uzbek Phone ───────────────────────────────────────────
+function formatUzbekPhone(rawVal: string): string {
+  let digits = rawVal.replace(/\D/g, "");
+
+  if (digits.startsWith("998")) {
+    digits = digits.slice(3);
+  }
+
+  digits = digits.slice(0, 9);
+  if (digits.length === 0) return "";
+
+  let formatted = "+998";
+  if (digits.length > 0) {
+    formatted += ` (${digits.slice(0, 2)}`;
+  }
+  if (digits.length >= 2) {
+    formatted += `) ${digits.slice(2, 5)}`;
+  }
+  if (digits.length >= 5) {
+    formatted += `-${digits.slice(5, 7)}`;
+  }
+  if (digits.length >= 7) {
+    formatted += `-${digits.slice(7, 9)}`;
+  }
+
+  return formatted;
 }
 
 export default function QuestionFieldRenderer({
@@ -24,6 +52,7 @@ export default function QuestionFieldRenderer({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
+  // ─── Drawing Signature Handlers ─────────────────────────────────────────────
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -62,36 +91,181 @@ export default function QuestionFieldRenderer({
     }
   };
 
+  // ─── Custom input change handler by question type ───────────────────────────
+  const handlePhoneChange = (inputVal: string) => {
+    const formatted = formatUzbekPhone(inputVal);
+    onChange(q.id, formatted);
+  };
+
+  const handleJshshirChange = (inputVal: string) => {
+    const digitsOnly = inputVal.replace(/\D/g, "").slice(0, 14);
+    onChange(q.id, digitsOnly);
+  };
+
+  const handlePassportChange = (inputVal: string) => {
+    let cleaned = inputVal.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    let letters = cleaned.replace(/[^A-Z]/g, "").slice(0, 2);
+    let digits = cleaned.replace(/[^0-9]/g, "").slice(0, 7);
+    onChange(q.id, `${letters}${digits}`);
+  };
+
+  const handleStudentIdChange = (inputVal: string) => {
+    const digitsOnly = inputVal.replace(/\D/g, "").slice(0, 15);
+    onChange(q.id, digitsOnly);
+  };
+
+  const toggleCheckboxValue = (optValue: string) => {
+    const currentArray = Array.isArray(value) ? value : [];
+    if (currentArray.includes(optValue)) {
+      onChange(q.id, currentArray.filter((v: string) => v !== optValue));
+    } else {
+      onChange(q.id, [...currentArray, optValue]);
+    }
+  };
+
   return (
-    <div className="p-6 glass-card rounded-2xl space-y-4 border-slate-200/90 dark:border-slate-800 shadow-md">
+    <div className="p-6 glass-card rounded-2xl space-y-4 border-slate-800 shadow-md">
       <div className="space-y-1">
-        <label className="text-base font-bold text-slate-900 dark:text-white flex items-start gap-1.5 leading-snug">
+        <label className="text-base font-bold text-white flex items-start gap-1.5 leading-snug">
           <span>{idx + 1}. {q.label}</span>
           {q.required && <span className="text-red-500 font-bold">*</span>}
         </label>
-        {q.help_text && <p className="text-xs font-medium text-slate-600 dark:text-slate-300">{q.help_text}</p>}
+        {q.help_text && <p className="text-xs font-medium text-slate-400">{q.help_text}</p>}
       </div>
 
-      {["short_text", "email", "phone", "password", "url", "jshshir", "passport", "student_id"].includes(q.type) && (
+      {/* PHONE TYPE - Auto Formatted +998 (XX) XXX-XX-XX */}
+      {q.type === "phone" && (
+        <div className="space-y-1.5">
+          <div className="relative">
+            <Phone className="absolute left-3.5 top-3 h-4 w-4 text-blue-400" />
+            <Input
+              type="text"
+              placeholder={q.placeholder || "+998 (90) 123-45-67"}
+              value={value || ""}
+              onChange={(e) => handlePhoneChange(e.target.value)}
+              className={`pl-10 bg-slate-950 text-white font-mono border-slate-700 text-sm ${
+                errorMsg ? "border-red-500" : ""
+              }`}
+            />
+          </div>
+          <p className="text-[11px] font-semibold text-slate-500 pl-1">
+            Format: <span className="text-blue-400 font-mono">+998 (XX) XXX-XX-XX</span>
+          </p>
+        </div>
+      )}
+
+      {/* JSHSHIR TYPE - 14 DIGITS */}
+      {q.type === "jshshir" && (
+        <div className="space-y-1.5">
+          <div className="relative">
+            <CreditCard className="absolute left-3.5 top-3 h-4 w-4 text-rose-400" />
+            <Input
+              type="text"
+              maxLength={14}
+              placeholder={q.placeholder || "31405981230045 (14 ta raqam)"}
+              value={value || ""}
+              onChange={(e) => handleJshshirChange(e.target.value)}
+              className={`pl-10 bg-slate-950 text-white font-mono border-slate-700 text-sm ${
+                errorMsg ? "border-red-500" : ""
+              }`}
+            />
+          </div>
+          <p className="text-[11px] font-semibold text-slate-500 pl-1">
+            14 xonali JSHSHIR (PINFL) raqami
+          </p>
+        </div>
+      )}
+
+      {/* PASSPORT TYPE - AA1234567 */}
+      {q.type === "passport" && (
+        <div className="space-y-1.5">
+          <div className="relative">
+            <UserCheck className="absolute left-3.5 top-3 h-4 w-4 text-rose-400" />
+            <Input
+              type="text"
+              maxLength={9}
+              placeholder={q.placeholder || "AA1234567"}
+              value={value || ""}
+              onChange={(e) => handlePassportChange(e.target.value)}
+              className={`pl-10 bg-slate-950 text-white font-mono uppercase border-slate-700 text-sm ${
+                errorMsg ? "border-red-500" : ""
+              }`}
+            />
+          </div>
+          <p className="text-[11px] font-semibold text-slate-500 pl-1">
+            Pasport: <span className="text-rose-400 font-mono">2 ta harf + 7 ta raqam</span>
+          </p>
+        </div>
+      )}
+
+      {/* STUDENT ID TYPE */}
+      {q.type === "student_id" && (
+        <div className="space-y-1.5">
+          <div className="relative">
+            <GraduationCap className="absolute left-3.5 top-3 h-4 w-4 text-purple-400" />
+            <Input
+              type="text"
+              placeholder={q.placeholder || "391234567890 (Talaba ID)"}
+              value={value || ""}
+              onChange={(e) => handleStudentIdChange(e.target.value)}
+              className={`pl-10 bg-slate-950 text-white font-mono border-slate-700 text-sm ${
+                errorMsg ? "border-red-500" : ""
+              }`}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* GENERIC SHORT TEXT / EMAIL / PASSWORD / URL */}
+      {["short_text", "email", "password", "url", "number"].includes(q.type) && (
         <Input
-          type={q.type === "email" ? "email" : q.type === "password" ? "password" : "text"}
+          type={q.type === "email" ? "email" : q.type === "password" ? "password" : q.type === "number" ? "number" : "text"}
           placeholder={q.placeholder || "Javobingizni kiriting..."}
           value={value || ""}
           onChange={(e) => onChange(q.id, e.target.value)}
-          className={`bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white border-slate-300 dark:border-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-sm font-medium ${errorMsg ? "border-red-500" : ""}`}
+          className={`bg-slate-950 text-white border-slate-700 placeholder:text-slate-500 text-sm font-medium ${
+            errorMsg ? "border-red-500" : ""
+          }`}
         />
       )}
 
+      {/* DATE / TIME / DATETIME */}
+      {(q.type === "date" || q.type === "datetime") && (
+        <div className="relative">
+          <Calendar className="absolute left-3.5 top-3 h-4 w-4 text-amber-400" />
+          <Input
+            type="date"
+            value={value || ""}
+            onChange={(e) => onChange(q.id, e.target.value)}
+            className="pl-10 bg-slate-950 text-white border-slate-700 text-sm"
+          />
+        </div>
+      )}
+
+      {q.type === "time" && (
+        <div className="relative">
+          <Clock className="absolute left-3.5 top-3 h-4 w-4 text-amber-400" />
+          <Input
+            type="time"
+            value={value || ""}
+            onChange={(e) => onChange(q.id, e.target.value)}
+            className="pl-10 bg-slate-950 text-white border-slate-700 text-sm"
+          />
+        </div>
+      )}
+
+      {/* LONG TEXT */}
       {q.type === "long_text" && (
         <textarea
           rows={4}
           placeholder={q.placeholder || "Batafsil javobingizni yozing..."}
           value={value || ""}
           onChange={(e) => onChange(q.id, e.target.value)}
-          className="flex w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 p-3 text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-blue-600 focus:outline-none"
+          className="flex w-full rounded-xl border border-slate-700 bg-slate-950 p-3 text-sm font-medium text-white placeholder:text-slate-500 focus:border-blue-600 focus:outline-none"
         />
       )}
 
+      {/* RADIO / SINGLE CHOICE */}
       {q.type === "radio" && (
         <div className="space-y-2 pt-1">
           {(q.config.options || []).map((opt) => (
@@ -100,26 +274,80 @@ export default function QuestionFieldRenderer({
               onClick={() => onChange(q.id, opt.value)}
               className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
                 value === opt.value
-                  ? "border-blue-600 bg-blue-50 dark:bg-blue-950/80 font-bold"
-                  : "border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-950/50 hover:bg-slate-100 dark:hover:bg-slate-900"
+                  ? "border-blue-600 bg-blue-950/80 font-bold"
+                  : "border-slate-800 bg-slate-950/50 hover:bg-slate-900"
               }`}
             >
-              <div className={`h-4 w-4 rounded-full border flex items-center justify-center shrink-0 ${value === opt.value ? "border-blue-600 bg-blue-600" : "border-slate-400"}`}>
+              <div
+                className={`h-4 w-4 rounded-full border flex items-center justify-center shrink-0 ${
+                  value === opt.value ? "border-blue-600 bg-blue-600" : "border-slate-600"
+                }`}
+              >
                 {value === opt.value && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
               </div>
-              <span className="text-sm text-slate-900 dark:text-slate-100 font-semibold">{opt.label}</span>
+              <span className="text-sm text-slate-100 font-semibold">{opt.label}</span>
             </label>
           ))}
         </div>
       )}
 
+      {/* CHECKBOX / MULTI SELECT */}
+      {(q.type === "checkbox" || q.type === "multi_select") && (
+        <div className="space-y-2 pt-1">
+          {(q.config.options || []).map((opt) => {
+            const isChecked = Array.isArray(value) && value.includes(opt.value);
+            return (
+              <label
+                key={opt.id}
+                onClick={() => toggleCheckboxValue(opt.value)}
+                className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                  isChecked
+                    ? "border-emerald-600 bg-emerald-950/80 font-bold"
+                    : "border-slate-800 bg-slate-950/50 hover:bg-slate-900"
+                }`}
+              >
+                {isChecked ? (
+                  <CheckSquare className="h-4 w-4 text-emerald-400 shrink-0" />
+                ) : (
+                  <Square className="h-4 w-4 text-slate-600 shrink-0" />
+                )}
+                <span className="text-sm text-slate-100 font-semibold">{opt.label}</span>
+              </label>
+            );
+          })}
+        </div>
+      )}
+
+      {/* YES / NO */}
+      {q.type === "yes_no" && (
+        <div className="grid grid-cols-2 gap-3 pt-1">
+          {["Ha", "Yoʻq"].map((optVal) => (
+            <button
+              type="button"
+              key={optVal}
+              onClick={() => onChange(q.id, optVal)}
+              className={`p-3.5 rounded-xl border text-sm font-bold transition-all ${
+                value === optVal
+                  ? "border-blue-600 bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                  : "border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900"
+              }`}
+            >
+              {optVal}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* DROPDOWN */}
       {q.type === "dropdown" && (
         <select
           value={value || ""}
           onChange={(e) => onChange(q.id, e.target.value)}
-          className="flex h-10 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-600 focus:outline-none"
+          className="flex h-10 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 text-sm font-medium text-white focus:border-blue-600 focus:outline-none"
         >
-          <option value="" disabled>-- Variantlardan birini tanlang --</option>
+          <option value="" disabled>
+            -- Variantlardan birini tanlang --
+          </option>
           {(q.config.options || []).map((opt) => (
             <option key={opt.id} value={opt.value}>
               {opt.label}
@@ -128,6 +356,7 @@ export default function QuestionFieldRenderer({
         </select>
       )}
 
+      {/* RATING */}
       {q.type === "rating" && (
         <div className="flex items-center gap-2 pt-2">
           {[1, 2, 3, 4, 5].map((star) => (
@@ -137,12 +366,17 @@ export default function QuestionFieldRenderer({
               onClick={() => onChange(q.id, star)}
               className="p-1 focus:outline-none"
             >
-              <Star className={`h-8 w-8 ${(value || 0) >= star ? "fill-amber-400 text-amber-400" : "text-slate-400 dark:text-slate-600"}`} />
+              <Star
+                className={`h-8 w-8 ${
+                  (value || 0) >= star ? "fill-amber-400 text-amber-400" : "text-slate-600"
+                }`}
+              />
             </button>
           ))}
         </div>
       )}
 
+      {/* SIGNATURE */}
       {q.type === "signature" && (
         <div className="space-y-2">
           <canvas
@@ -153,7 +387,7 @@ export default function QuestionFieldRenderer({
             onMouseMove={draw}
             onMouseUp={stopDrawing}
             onMouseLeave={stopDrawing}
-            className="border border-slate-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 cursor-crosshair w-full"
+            className="border border-slate-700 rounded-xl bg-slate-950 cursor-crosshair w-full"
           />
           <div className="flex justify-end">
             <Button type="button" variant="ghost" size="sm" onClick={clearCanvas} className="text-xs text-red-500 gap-1 font-semibold">
