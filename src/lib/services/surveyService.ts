@@ -250,21 +250,49 @@ export class SurveyService {
   }
 
   private static async syncResponseToGoogleSheets(surveyId: string, resp: SurveyResponse): Promise<void> {
-    const webhookUrl =
-      process.env.NEXT_PUBLIC_GOOGLE_SHEETS_URL ||
-      this.getSheetsConfig(surveyId)?.webhook_url;
-
-    if (!webhookUrl) return;
-
     try {
-      await fetch(webhookUrl, {
+      const survey = this.getSurveyById(surveyId);
+      const webhookUrl =
+        process.env.NEXT_PUBLIC_GOOGLE_SHEETS_URL ||
+        this.getSheetsConfig(surveyId)?.webhook_url ||
+        "https://script.google.com/macros/s/AKfycbzGBKnwub-9PD_e30EdAmuK3GTAPxyd8jS5rcQNNO4rY5vAK2f_3ewwV-b_M40BSM6Deg/exec";
+
+      const spreadsheetId =
+        process.env.NEXT_PUBLIC_GOOGLE_SHEET_ID ||
+        this.getSheetsConfig(surveyId)?.spreadsheet_id ||
+        "1_EI6IL_n3Tgf6tUEXJrFm2Fsk4fjdL-oh-nB791slZ8";
+
+      const rowData: Record<string, any> = {
+        "Vaqti": new Date(resp.completed_at || Date.now()).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" }),
+        "Javob_ID": resp.submission_id,
+        "So'rovnoma": survey?.title || surveyId,
+      };
+
+      if (survey && survey.questions && survey.questions.length > 0) {
+        survey.questions.forEach((q) => {
+          const ans = resp.answers?.find((a) => a.question_id === q.id);
+          const colLabel = q.label ? q.label.trim() : q.id;
+          rowData[colLabel] =
+            ans && ans.value !== undefined
+              ? typeof ans.value === "object"
+                ? JSON.stringify(ans.value)
+                : String(ans.value)
+              : "";
+        });
+      } else if (resp.answers) {
+        resp.answers.forEach((a) => {
+          rowData[a.question_id] = typeof a.value === "object" ? JSON.stringify(a.value) : String(a.value);
+        });
+      }
+
+      await fetch("/api/sync/google-sheets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          survey_id: surveyId,
-          submission_id: resp.submission_id,
-          submitted_at: resp.completed_at,
-          answers: resp.answers,
+          webhookUrl,
+          spreadsheetId,
+          sheetName: "Javoblar",
+          data: rowData,
         }),
       });
     } catch {}
