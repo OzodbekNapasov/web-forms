@@ -19,6 +19,8 @@ import {
   Eye,
   Table as TableIcon,
   MessageSquare,
+  Send,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -34,6 +36,8 @@ export default function SurveyResponsesPage({ params }: { params: Promise<{ id: 
   const [selectedResponse, setSelectedResponse] = useState<SurveyResponse | null>(null);
   const [sheetsConfig, setSheetsConfig] = useState<GoogleSheetsConfig | null>(null);
   const [isSheetsModalOpen, setIsSheetsModalOpen] = useState(false);
+  const [isSyncingAll, setIsSyncingAll] = useState(false);
+  const [syncingRowId, setSyncingRowId] = useState<string | null>(null);
 
   useEffect(() => {
     const loadedSurvey = SurveyService.getSurveyById(resolvedParams.id);
@@ -75,6 +79,129 @@ export default function SurveyResponsesPage({ params }: { params: Promise<{ id: 
     setCourseFilter("all");
   };
 
+  // ─── Single Response Sync to Google Sheets ──────────────────────────────────
+  const syncSingleResponseToSheets = async (resp: SurveyResponse) => {
+    setSyncingRowId(resp.id);
+    toast.info(`Javob #${resp.submission_id} Google Sheets'ga yuborilmoqda...`);
+
+    const webhookUrl =
+      process.env.NEXT_PUBLIC_GOOGLE_SHEETS_URL ||
+      sheetsConfig?.webhook_url ||
+      "https://script.google.com/macros/s/AKfycbzGBKnwub-9PD_e30EdAmuK3GTAPxyd8jS5rcQNNO4rY5vAK2f_3ewwV-b_M40BSM6Deg/exec";
+
+    const spreadsheetId =
+      process.env.NEXT_PUBLIC_GOOGLE_SHEET_ID ||
+      sheetsConfig?.spreadsheet_id ||
+      "1_EI6IL_n3Tgf6tUEXJrFm2Fsk4fjdL-oh-nB791slZ8";
+
+    const rowData: Record<string, any> = {
+      Vaqti: new Date(resp.completed_at || Date.now()).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" }),
+      Javob_ID: resp.submission_id,
+      So_rovnoma: survey.title,
+    };
+
+    if (survey.questions) {
+      survey.questions.forEach((q) => {
+        const ans = resp.answers?.find((a) => a.question_id === q.id);
+        const colLabel = q.label ? q.label.trim() : q.id;
+        rowData[colLabel] =
+          ans && ans.value !== undefined
+            ? typeof ans.value === "object"
+              ? JSON.stringify(ans.value)
+              : String(ans.value)
+            : "";
+      });
+    }
+
+    try {
+      const res = await fetch("/api/sync/google-sheets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          webhookUrl,
+          spreadsheetId,
+          sheetName: "Javoblar",
+          data: rowData,
+        }),
+      });
+
+      const data = await res.json();
+      setSyncingRowId(null);
+
+      if (data.success) {
+        toast.success(`Javob #${resp.submission_id} Google Sheets'ga muvaffaqiyatli uzatildi!`);
+      } else {
+        toast.error(`Xatolik: ${data.error}`);
+      }
+    } catch (err: any) {
+      setSyncingRowId(null);
+      toast.error(`Yuborishda xato: ${err.message}`);
+    }
+  };
+
+  // ─── Batch Sync All Responses to Google Sheets ──────────────────────────────
+  const syncAllResponsesToSheets = async () => {
+    if (filteredResponses.length === 0) {
+      toast.error("Yuborish uchun javoblar mavjud emas!");
+      return;
+    }
+
+    setIsSyncingAll(true);
+    toast.info(`${filteredResponses.length} ta javob Google Sheets'ga sinxronlanmoqda...`);
+
+    const webhookUrl =
+      process.env.NEXT_PUBLIC_GOOGLE_SHEETS_URL ||
+      sheetsConfig?.webhook_url ||
+      "https://script.google.com/macros/s/AKfycbzGBKnwub-9PD_e30EdAmuK3GTAPxyd8jS5rcQNNO4rY5vAK2f_3ewwV-b_M40BSM6Deg/exec";
+
+    const spreadsheetId =
+      process.env.NEXT_PUBLIC_GOOGLE_SHEET_ID ||
+      sheetsConfig?.spreadsheet_id ||
+      "1_EI6IL_n3Tgf6tUEXJrFm2Fsk4fjdL-oh-nB791slZ8";
+
+    let successCount = 0;
+
+    for (const resp of filteredResponses) {
+      const rowData: Record<string, any> = {
+        Vaqti: new Date(resp.completed_at || Date.now()).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" }),
+        Javob_ID: resp.submission_id,
+        So_rovnoma: survey.title,
+      };
+
+      if (survey.questions) {
+        survey.questions.forEach((q) => {
+          const ans = resp.answers?.find((a) => a.question_id === q.id);
+          const colLabel = q.label ? q.label.trim() : q.id;
+          rowData[colLabel] =
+            ans && ans.value !== undefined
+              ? typeof ans.value === "object"
+                ? JSON.stringify(ans.value)
+                : String(ans.value)
+              : "";
+        });
+      }
+
+      try {
+        const res = await fetch("/api/sync/google-sheets", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            webhookUrl,
+            spreadsheetId,
+            sheetName: "Javoblar",
+            data: rowData,
+          }),
+        });
+
+        const data = await res.json();
+        if (data.success) successCount++;
+      } catch {}
+    }
+
+    setIsSyncingAll(false);
+    toast.success(`Jami ${successCount} ta javob Google Sheets jadvaliga yuborildi!`);
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-slate-800 pb-4">
@@ -93,12 +220,27 @@ export default function SurveyResponsesPage({ params }: { params: Promise<{ id: 
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isSyncingAll}
+            onClick={syncAllResponsesToSheets}
+            className="gap-1.5 border-emerald-800 bg-emerald-950/60 text-emerald-400 hover:bg-emerald-900 text-xs font-bold"
+          >
+            {isSyncingAll ? (
+              <RefreshCw className="h-4 w-4 animate-spin text-emerald-400" />
+            ) : (
+              <Send className="h-4 w-4 text-emerald-400" />
+            )}
+            Google Sheets'ga Yuborish
+          </Button>
+
           <Button
             variant="outline"
             size="sm"
             onClick={() => setIsSheetsModalOpen(true)}
-            className="gap-1.5 border-emerald-800 text-emerald-400 bg-slate-900 text-xs font-bold"
+            className="gap-1.5 border-slate-800 bg-slate-900 text-slate-300 text-xs font-bold"
           >
             <FileSpreadsheet className="h-4 w-4 text-emerald-500" /> Sinx Sozlamasi
           </Button>
@@ -177,7 +319,22 @@ export default function SurveyResponsesPage({ params }: { params: Promise<{ id: 
                         </td>
                       );
                     })}
-                    <td className="p-3.5 text-right">
+                    <td className="p-3.5 text-right space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={syncingRowId === r.id}
+                        onClick={() => syncSingleResponseToSheets(r)}
+                        className="gap-1 text-xs text-emerald-400 hover:bg-emerald-950/40 font-semibold"
+                        title="Ushbu javobni Google Sheets'ga yuborish"
+                      >
+                        {syncingRowId === r.id ? (
+                          <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Send className="h-3.5 w-3.5 text-emerald-400" />
+                        )}
+                        Sheets'ga Yuborish
+                      </Button>
                       <Button variant="ghost" size="sm" onClick={() => setSelectedResponse(r)} className="gap-1 text-xs text-blue-400">
                         <Eye className="h-3.5 w-3.5" /> Koʻrish
                       </Button>
