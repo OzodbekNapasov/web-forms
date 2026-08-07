@@ -326,10 +326,32 @@ export default function QuestionEditorCard({
             <GripVertical className="h-4 w-4" />
           </span>
           <span className="text-xs font-bold text-slate-400">{index + 1}</span>
-          <div className={`flex items-center gap-1.5 text-xs font-bold ${cfg.color}`}>
-            <Icon className="h-4 w-4" />
-            {cfg.label}
+          
+          {/* Question Type Selector Pill */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold">
+            <Icon className={`h-3.5 w-3.5 ${cfg.color}`} />
+            <select
+              value={question.type}
+              onChange={(e) => onUpdate({ ...question, type: e.target.value as QuestionType })}
+              className="bg-transparent text-white font-bold outline-none cursor-pointer text-xs"
+            >
+              <option value="short_text" className="bg-slate-900">Qisqa matn</option>
+              <option value="long_text" className="bg-slate-900">Uzun matn</option>
+              <option value="radio" className="bg-slate-900">Bitta tanlov</option>
+              <option value="checkbox" className="bg-slate-900">Ko'p tanlov</option>
+              <option value="dropdown" className="bg-slate-900">Ro'yxatdan tanlash</option>
+              <option value="phone" className="bg-slate-900">Telefon</option>
+              <option value="email" className="bg-slate-900">Email</option>
+              <option value="date" className="bg-slate-900">Sana</option>
+              <option value="time" className="bg-slate-900">Vaqt</option>
+              <option value="rating" className="bg-slate-900">Baholash</option>
+              <option value="yes_no" className="bg-slate-900">Ha / Yo'q</option>
+              <option value="jshshir" className="bg-slate-900">JSHSHIR</option>
+              <option value="passport" className="bg-slate-900">Pasport</option>
+              <option value="student_id" className="bg-slate-900">Talaba ID</option>
+            </select>
           </div>
+
           {question.required && (
             <span className="text-[10px] font-bold text-red-400 bg-red-400/10 border border-red-400/20 px-2 py-0.5 rounded-md">
               Majburiy
