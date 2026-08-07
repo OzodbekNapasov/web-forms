@@ -158,24 +158,37 @@ export default function StudentSurveyPortalPage({ params }: { params: Promise<{ 
   return (
     <div className="min-h-screen bg-slate-950 text-white py-10 px-4 sm:px-6">
       <div className="max-w-2xl mx-auto space-y-6">
-        {/* Header Header */}
+        {/* Header Card */}
         <motion.div initial={{ opacity: 0, y: -15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <Card className="glass-card p-6 rounded-2xl space-y-4 border-slate-800 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-blue-400 font-bold text-xs uppercase tracking-wider">
-                <GraduationCap className="h-4 w-4" /> TAʻLIMIY SOʻROVNOMA PORTALI
+          <Card className="glass-card overflow-hidden rounded-2xl border-slate-800 shadow-2xl">
+            {(survey.cover_image || survey.theme_config?.headerImageUrl) && (
+              <div className="relative h-48 sm:h-56 w-full overflow-hidden bg-slate-950 border-b border-slate-800">
+                <img
+                  src={survey.cover_image || survey.theme_config?.headerImageUrl || ""}
+                  alt={survey.title}
+                  className="h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent" />
               </div>
-              <span className="text-xs font-bold text-slate-300">
-                {currentPageIndex + 1}-sahifa (jami {pages.length} ta)
-              </span>
-            </div>
+            )}
 
-            <div className="space-y-1">
-              <h1 className="text-2xl font-bold text-white leading-tight">{survey.title}</h1>
-              {survey.description && <p className="text-xs font-medium text-slate-300 leading-relaxed">{survey.description}</p>}
-            </div>
+            <div className="p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-blue-400 font-bold text-xs uppercase tracking-wider">
+                  <GraduationCap className="h-4 w-4" /> TAʻLIMIY SOʻROVNOMA PORTALI
+                </div>
+                <span className="text-xs font-bold text-slate-300">
+                  {currentPageIndex + 1}-sahifa (jami {pages.length} ta)
+                </span>
+              </div>
 
-            <Progress value={progressPercent} className="h-2 bg-slate-800" />
+              <div className="space-y-1">
+                <h1 className="text-2xl font-bold text-white leading-tight">{survey.title}</h1>
+                {survey.description && <p className="text-xs font-medium text-slate-300 leading-relaxed">{survey.description}</p>}
+              </div>
+
+              <Progress value={progressPercent} className="h-2 bg-slate-800" />
+            </div>
           </Card>
         </motion.div>
 

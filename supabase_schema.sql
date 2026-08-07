@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS public.surveys (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
     description TEXT,
+    cover_image TEXT,
     custom_url TEXT UNIQUE,
     status TEXT DEFAULT 'published',
     questions_count INTEGER DEFAULT 0,

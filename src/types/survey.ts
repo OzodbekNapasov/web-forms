@@ -98,6 +98,7 @@ export interface Survey {
   id: string;
   title: string;
   description?: string | null;
+  cover_image?: string | null;
   status: SurveyStatus;
   custom_url?: string | null;
   scheduled_at?: string | null;
