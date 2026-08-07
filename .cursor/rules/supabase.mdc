@@ -1,0 +1,10 @@
+---
+description: Supabase SSR Authentication & RLS Rules
+globs: **/*.ts, **/*.tsx
+---
+
+# Supabase Rules
+
+1. Always use `@supabase/ssr` browser and server clients.
+2. Never expose `SUPABASE_SERVICE_ROLE` secret keys to browser client components.
+3. Verify RLS policies on PostgreSQL tables before inserting or querying user data.

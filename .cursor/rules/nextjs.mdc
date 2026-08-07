@@ -1,0 +1,11 @@
+---
+description: Next.js 15 App Router Best Practices & Sizing Constraints
+globs: **/*.tsx, **/*.ts
+---
+
+# Next.js 15 App Router Rules
+
+1. Always use Next.js 15 Server Components by default; mark Client Components with `"use client"` only when interactivity or state is required.
+2. In SSR helpers (`cookies()`), remember that `cookies()` from `next/headers` returns a Promise in Next.js 15 and must be awaited.
+3. Import `NextResponse` and `NextRequest` from `"next/server"`.
+4. Component line limit: **Maximum 250 lines per file**.

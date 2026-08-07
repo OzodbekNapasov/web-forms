@@ -1,0 +1,10 @@
+---
+description: Strict TypeScript Typing Standards
+globs: **/*.ts, **/*.tsx
+---
+
+# TypeScript Standards
+
+1. Never use `any` type without prior approval. Explicitly define TS interfaces.
+2. Centralize shared data models in `src/types/`.
+3. All function return types should be declared explicitly for public API services.
