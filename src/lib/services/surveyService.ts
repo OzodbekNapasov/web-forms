@@ -26,6 +26,66 @@ export class SurveyService {
     return surveys.find((s) => s.id === idOrSlug || s.custom_url === idOrSlug) || null;
   }
 
+  public static async fetchSurveyFromSupabase(idOrSlug: string): Promise<Survey | null> {
+    try {
+      const supabase = createClient();
+      const { data: sData, error: sErr } = await supabase
+        .from("surveys")
+        .select("*")
+        .or(`id.eq.${idOrSlug},custom_url.eq.${idOrSlug}`)
+        .maybeSingle();
+
+      if (sErr || !sData) return null;
+
+      const { data: qData } = await supabase
+        .from("survey_questions")
+        .select("*")
+        .eq("survey_id", sData.id)
+        .order("order_index", { ascending: true });
+
+      const questions = (qData || []).map((q: any) => ({
+        id: q.id,
+        survey_id: q.survey_id,
+        type: q.type,
+        label: q.label,
+        placeholder: q.placeholder,
+        help_text: q.help_text,
+        required: q.required,
+        order_index: q.order_index,
+        config: q.config || {},
+      }));
+
+      const surveyObj: Survey = {
+        id: sData.id,
+        title: sData.title,
+        description: sData.description,
+        status: sData.status,
+        custom_url: sData.custom_url,
+        questions,
+        is_multistep: sData.is_multistep || false,
+        theme_config: sData.theme_config || { primaryColor: "#2563EB", backgroundColor: "#020617", cardStyle: "glass", fontFamily: "Inter" },
+        created_at: sData.created_at,
+        updated_at: sData.updated_at,
+      };
+
+      // Cache into local storage
+      const surveys = this.getSurveys();
+      const existingIdx = surveys.findIndex((s) => s.id === surveyObj.id);
+      if (existingIdx >= 0) {
+        surveys[existingIdx] = surveyObj;
+      } else {
+        surveys.unshift(surveyObj);
+      }
+      if (typeof window !== "undefined") {
+        localStorage.setItem(this.STORAGE_KEY_SURVEYS, JSON.stringify(surveys));
+      }
+
+      return surveyObj;
+    } catch {
+      return null;
+    }
+  }
+
   public static saveSurvey(survey: Survey): Survey {
     const surveys = this.getSurveys();
     const index = surveys.findIndex((s) => s.id === survey.id);

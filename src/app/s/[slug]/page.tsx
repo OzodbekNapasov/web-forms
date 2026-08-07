@@ -8,13 +8,17 @@ import SubmissionSuccessCard from "@/components/portal/SubmissionSuccessCard";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { GraduationCap, ArrowRight, ArrowLeft, Send, RefreshCw } from "lucide-react";
+import { GraduationCap, ArrowRight, ArrowLeft, Send, RefreshCw, AlertTriangle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import Link from "next/link";
 
 export default function StudentSurveyPortalPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = use(params);
   const [survey, setSurvey] = useState<Survey | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -26,6 +30,7 @@ export default function StudentSurveyPortalPage({ params }: { params: Promise<{ 
     const loaded = SurveyService.getSurveyById(resolvedParams.slug);
     if (loaded) {
       setSurvey(loaded);
+      setIsLoading(false);
       const draft = localStorage.getItem(`draft_${loaded.id}`);
       if (draft) {
         try {
@@ -33,16 +38,52 @@ export default function StudentSurveyPortalPage({ params }: { params: Promise<{ 
           toast.info("Saqlangan qoralama tiklandi");
         } catch {}
       }
+    } else {
+      // Fetch remote survey from Supabase database
+      SurveyService.fetchSurveyFromSupabase(resolvedParams.slug)
+        .then((remote) => {
+          if (remote) {
+            setSurvey(remote);
+          } else {
+            setNotFound(true);
+          }
+        })
+        .finally(() => setIsLoading(false));
     }
   }, [resolvedParams.slug]);
 
-  if (!survey) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center space-y-3">
           <RefreshCw className="h-8 w-8 text-blue-500 animate-spin mx-auto" />
           <p className="text-sm font-semibold text-slate-300">Soʻrovnoma yuklanmoqda...</p>
         </motion.div>
+      </div>
+    );
+  }
+
+  if (notFound || !survey) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4">
+        <Card className="glass-card max-w-md w-full p-8 text-center rounded-2xl border-slate-800 space-y-4">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
+            <AlertTriangle className="h-7 w-7" />
+          </div>
+          <div className="space-y-1.5">
+            <h2 className="text-xl font-bold text-white">Soʻrovnoma Topilmadi</h2>
+            <p className="text-xs text-slate-400">
+              Siz kirgan havola mavjud emas yoki muddati tugagan boʻlishi mumkin. Havolani qayta tekshirib koʻring.
+            </p>
+          </div>
+          <div className="pt-2">
+            <Link href="/">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-6 h-10">
+                Bosh Sahifaga Qaytish
+              </Button>
+            </Link>
+          </div>
+        </Card>
       </div>
     );
   }
