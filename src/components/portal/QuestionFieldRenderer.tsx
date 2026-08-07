@@ -4,7 +4,21 @@ import React, { useRef, useState } from "react";
 import { Question } from "@/types/survey";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Star, RotateCcw, CheckSquare, Square, Phone, Calendar, Clock, CreditCard, UserCheck, GraduationCap } from "lucide-react";
+import {
+  Star,
+  RotateCcw,
+  CheckSquare,
+  Square,
+  Phone,
+  Calendar,
+  Clock,
+  CreditCard,
+  UserCheck,
+  GraduationCap,
+  ChevronDown,
+  Check,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface QuestionFieldRendererProps {
   question: Question;
@@ -40,6 +54,99 @@ function formatUzbekPhone(rawVal: string): string {
   }
 
   return formatted;
+}
+
+// ─── Premium Animated Dropdown Component ─────────────────────────────────────
+function AnimatedDropdownSelect({
+  options,
+  value,
+  onChange,
+  placeholder,
+  hasError,
+}: {
+  options: { id: string; label: string; value: string }[];
+  value: string;
+  onChange: (val: string) => void;
+  placeholder?: string;
+  hasError?: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const selectedOpt = options.find((o) => o.value === value);
+
+  return (
+    <div className="relative w-full">
+      {/* Trigger Button */}
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex h-11 w-full items-center justify-between rounded-xl border px-4 text-sm font-semibold transition-all cursor-pointer ${
+          isOpen
+            ? "border-blue-500 bg-slate-900 text-white shadow-lg shadow-blue-500/20 ring-2 ring-blue-500/30"
+            : value
+            ? "border-slate-700 bg-slate-950 text-white hover:border-slate-600"
+            : `border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 ${
+                hasError ? "border-red-500" : ""
+              }`
+        }`}
+      >
+        <span className="truncate">
+          {selectedOpt ? selectedOpt.label : placeholder || "-- Variantlardan birini tanlang --"}
+        </span>
+        <ChevronDown
+          className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-300 ${
+            isOpen ? "rotate-180 text-blue-400" : ""
+          }`}
+        />
+      </button>
+
+      {/* Animated Floating Menu */}
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* Backdrop click listener */}
+            <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: -8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: -8 }}
+              transition={{ type: "spring", stiffness: 450, damping: 28 }}
+              className="absolute left-0 right-0 top-full z-50 mt-2 max-h-60 overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900/95 p-1.5 shadow-2xl backdrop-blur-xl space-y-1"
+            >
+              {options.length === 0 ? (
+                <div className="p-3 text-center text-xs text-slate-500">
+                  Variantlar mavjud emas
+                </div>
+              ) : (
+                options.map((opt) => {
+                  const isSelected = value === opt.value;
+                  return (
+                    <motion.button
+                      key={opt.id}
+                      type="button"
+                      whileHover={{ x: 4 }}
+                      onClick={() => {
+                        onChange(opt.value);
+                        setIsOpen(false);
+                      }}
+                      className={`flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all cursor-pointer ${
+                        isSelected
+                          ? "bg-blue-600 text-white font-bold shadow-md shadow-blue-600/30"
+                          : "text-slate-200 hover:bg-slate-800/90 hover:text-white"
+                      }`}
+                    >
+                      <span className="truncate">{opt.label}</span>
+                      {isSelected && <Check className="h-4 w-4 shrink-0 text-white" />}
+                    </motion.button>
+                  );
+                })
+              )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
 export default function QuestionFieldRenderer({
@@ -338,22 +445,15 @@ export default function QuestionFieldRenderer({
         </div>
       )}
 
-      {/* DROPDOWN */}
+      {/* ANIMATED DROPDOWN MENU */}
       {q.type === "dropdown" && (
-        <select
+        <AnimatedDropdownSelect
+          options={q.config.options || []}
           value={value || ""}
-          onChange={(e) => onChange(q.id, e.target.value)}
-          className="flex h-10 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 text-sm font-medium text-white focus:border-blue-600 focus:outline-none"
-        >
-          <option value="" disabled>
-            -- Variantlardan birini tanlang --
-          </option>
-          {(q.config.options || []).map((opt) => (
-            <option key={opt.id} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          onChange={(val) => onChange(q.id, val)}
+          placeholder={q.placeholder || undefined}
+          hasError={!!errorMsg}
+        />
       )}
 
       {/* RATING */}
