@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Survey, SurveyStatus } from "@/types/survey";
+import { Survey } from "@/types/survey";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SaveStatus } from "../state/useAutoSave";
@@ -18,10 +18,6 @@ import {
   RefreshCw,
   AlertCircle,
   Share2,
-  GraduationCap,
-  MessageSquare,
-  FileSpreadsheet,
-  Settings,
 } from "lucide-react";
 
 interface TopToolbarProps {
@@ -55,26 +51,21 @@ export default function TopToolbar({
   onOpenShare,
 }: TopToolbarProps) {
   return (
-    <div className="sticky top-16 z-30 flex flex-wrap items-center justify-between gap-3 glass-card p-3 rounded-2xl border-slate-800 shadow-xl">
-      {/* Left: Brand & Survey Title */}
+    <div className="sticky top-20 z-30 flex flex-wrap items-center justify-between gap-3 glass-card p-3 rounded-2xl border-slate-800 shadow-xl">
+      {/* Left: Back Button & Survey Title */}
       <div className="flex items-center gap-3">
-        <Link href="/admin">
+        <Link href="/admin/surveys">
           <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-slate-900 text-slate-300">
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
 
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white font-bold text-xs shadow-md shadow-blue-600/30">
-            <GraduationCap className="h-4 w-4" />
-          </div>
-          <Input
-            value={survey.title}
-            onChange={(e) => setSurvey({ ...survey, title: e.target.value })}
-            placeholder="Soʻrovnoma sarlavhasi"
-            className="h-8 font-bold text-sm border-transparent hover:border-slate-800 focus:border-blue-600 bg-transparent px-2 w-44 sm:w-60 text-white"
-          />
-        </div>
+        <Input
+          value={survey.title}
+          onChange={(e) => setSurvey({ ...survey, title: e.target.value })}
+          placeholder="Soʻrovnoma sarlavhasi"
+          className="h-8 font-bold text-sm border-transparent hover:border-slate-800 focus:border-blue-600 bg-transparent px-2 w-48 sm:w-72 text-white"
+        />
 
         {/* Save Status Badge */}
         <div className="hidden md:flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full bg-slate-950 border border-slate-800">
@@ -95,33 +86,6 @@ export default function TopToolbar({
           )}
           {saveStatus === "idle" && <span className="text-slate-400">Avto-saqlash faol</span>}
         </div>
-      </div>
-
-      {/* Middle Navigation Tabs (Formy UI Style) */}
-      <div className="hidden xl:flex items-center gap-1 p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs font-bold">
-        <Link href="/admin">
-          <span className="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer">
-            Bosh sahifa
-          </span>
-        </Link>
-        <span className="px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow-md shadow-blue-600/30 cursor-pointer">
-          Konstruktor
-        </span>
-        <Link href={`/admin/surveys/${survey.id}/responses`}>
-          <span className="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-colors flex items-center gap-1 cursor-pointer">
-            <MessageSquare className="h-3.5 w-3.5" /> Javoblar
-          </span>
-        </Link>
-        <Link href="/admin/sheets">
-          <span className="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-colors flex items-center gap-1 cursor-pointer">
-            <FileSpreadsheet className="h-3.5 w-3.5" /> Sheets
-          </span>
-        </Link>
-        <Link href="/admin/settings">
-          <span className="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-colors flex items-center gap-1 cursor-pointer">
-            <Settings className="h-3.5 w-3.5" /> Sozlamalar
-          </span>
-        </Link>
       </div>
 
       {/* Right Action Controls */}
