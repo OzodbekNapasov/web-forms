@@ -277,7 +277,7 @@ function AnswerPreview({
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-interface QuestionEditorCardProps {
+export interface QuestionEditorCardProps {
   question: Question;
   index: number;
   totalQuestions: number;
@@ -288,6 +288,7 @@ interface QuestionEditorCardProps {
   onDelete: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
+  dragHandleProps?: Record<string, any>;
 }
 
 export default function QuestionEditorCard({
@@ -301,6 +302,7 @@ export default function QuestionEditorCard({
   onDelete,
   onMoveUp,
   onMoveDown,
+  dragHandleProps,
 }: QuestionEditorCardProps) {
   const cfg = TYPE_CONFIG[question.type] || { label: question.type, icon: Type, color: "text-slate-400" };
   const Icon = cfg.icon;
@@ -322,7 +324,11 @@ export default function QuestionEditorCard({
       {/* Top row */}
       <div className="flex items-center justify-between px-6 pt-5 pb-2">
         <div className="flex items-center gap-2.5">
-          <span className="cursor-grab text-slate-600 hover:text-slate-300">
+          <span
+            className="cursor-grab active:cursor-grabbing text-slate-500 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+            {...dragHandleProps}
+            title="Ushlab turib o'rnini almashtirish (Drag & Drop)"
+          >
             <GripVertical className="h-4 w-4" />
           </span>
           <span className="text-xs font-bold text-slate-400">{index + 1}</span>

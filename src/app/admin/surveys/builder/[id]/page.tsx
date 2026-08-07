@@ -7,7 +7,23 @@ import { useUndoRedoStore } from "@/features/survey-builder/state/useUndoRedoSto
 import { useAutoSave } from "@/features/survey-builder/state/useAutoSave";
 import TopToolbar from "@/features/survey-builder/components/TopToolbar";
 import LeftPaletteSidebar from "@/features/survey-builder/components/LeftPaletteSidebar";
-import QuestionEditorCard from "@/components/builder/QuestionEditorCard";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import LivePreviewModal from "@/components/builder/LivePreviewModal";
 import TemplatesModal from "@/features/survey-builder/components/TemplatesModal";
 import QuestionLibraryModal from "@/features/survey-builder/components/QuestionLibraryModal";
@@ -18,6 +34,34 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Image as ImageIcon, Trash2, Upload, Sparkles, X, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
+import QuestionEditorCard, { QuestionEditorCardProps } from "@/components/builder/QuestionEditorCard";
+
+function SortableQuestionCard(props: QuestionEditorCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: props.question.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <QuestionEditorCard
+        {...props}
+        dragHandleProps={{ ...attributes, ...listeners }}
+      />
+    </div>
+  );
+}
 
 const PRESET_BANNERS = [
   { label: "Taʻlim va Universitet", url: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200&auto=format&fit=crop&q=80" },
@@ -63,6 +107,29 @@ function SurveyBuilderCanvas({ initialSurvey }: { initialSurvey: Survey }) {
   // Cover image modal state
   const [isCoverModalOpen, setIsCoverModalOpen] = useState(false);
   const [customCoverUrl, setCustomCoverUrl] = useState("");
+
+  // DND Kit sensors setup
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const questions = survey.questions || [];
+      const oldIndex = questions.findIndex((q) => q.id === active.id);
+      const newIndex = questions.findIndex((q) => q.id === over.id);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const reordered = arrayMove(questions, oldIndex, newIndex).map((q, idx) => ({
+          ...q,
+          order_index: idx,
+        }));
+        updateSurvey({ ...survey, questions: reordered });
+        toast.success("Savollar oʻrni oʻzgartirildi!");
+      }
+    }
+  };
 
   // Keyboard Shortcuts (Ctrl+Z, Ctrl+Shift+Z, Ctrl+S)
   useEffect(() => {
@@ -279,24 +346,31 @@ function SurveyBuilderCanvas({ initialSurvey }: { initialSurvey: Survey }) {
             </div>
           </Card>
 
-          {/* Question Editor Cards */}
-          <div className="space-y-4">
-            {(survey.questions || []).map((q, idx) => (
-              <QuestionEditorCard
-                key={q.id}
-                question={q}
-                index={idx}
-                totalQuestions={survey.questions?.length || 0}
-                isSelected={q.id === selectedQuestionId}
-                onSelect={() => setSelectedQuestionId(q.id)}
-                onUpdate={handleUpdateQuestion}
-                onDuplicate={() => handleDuplicateQuestion(q.id)}
-                onDelete={() => handleDeleteQuestion(q.id)}
-                onMoveUp={() => handleMoveQuestion(idx, "up")}
-                onMoveDown={() => handleMoveQuestion(idx, "down")}
-              />
-            ))}
-          </div>
+          {/* Question Editor Cards with Drag & Drop */}
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext
+              items={(survey.questions || []).map((q) => q.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-4">
+                {(survey.questions || []).map((q, idx) => (
+                  <SortableQuestionCard
+                    key={q.id}
+                    question={q}
+                    index={idx}
+                    totalQuestions={survey.questions?.length || 0}
+                    isSelected={q.id === selectedQuestionId}
+                    onSelect={() => setSelectedQuestionId(q.id)}
+                    onUpdate={handleUpdateQuestion}
+                    onDuplicate={() => handleDuplicateQuestion(q.id)}
+                    onDelete={() => handleDeleteQuestion(q.id)}
+                    onMoveUp={() => handleMoveQuestion(idx, "up")}
+                    onMoveDown={() => handleMoveQuestion(idx, "down")}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         </div>
       </div>
 
