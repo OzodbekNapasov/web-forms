@@ -4,45 +4,70 @@ import React, { useRef, useEffect } from "react";
 import { Question, QuestionOption, QuestionType } from "@/types/survey";
 import { Button } from "@/components/ui/button";
 import {
-  GripVertical, Copy, Trash2, ArrowUp, ArrowDown,
-  Plus, X, CheckSquare, Circle, ChevronDown,
-  Star, SlidersHorizontal, ToggleLeft, Type, AlignLeft,
-  Hash, Phone, Mail, Lock, Calendar, Clock, Upload,
-  CreditCard, UserCheck, GraduationCap, Globe, MapPin,
+  GripVertical,
+  Copy,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+  Plus,
+  X,
+  CheckSquare,
+  Circle,
+  ChevronDown,
+  Star,
+  SlidersHorizontal,
+  ToggleLeft,
+  Type,
+  AlignLeft,
+  Hash,
+  Phone,
+  Mail,
+  Lock,
+  Calendar,
+  Clock,
+  Upload,
+  CreditCard,
+  UserCheck,
+  GraduationCap,
+  Globe,
+  MapPin,
 } from "lucide-react";
 
 // ─── Question type display config ────────────────────────────────────────────
 const TYPE_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string }> = {
-  short_text:    { label: "Qisqa matn",         icon: Type,         color: "text-blue-400" },
-  long_text:     { label: "Uzun matn",           icon: AlignLeft,    color: "text-blue-400" },
-  number:        { label: "Raqam",               icon: Hash,         color: "text-purple-400" },
-  phone:         { label: "Telefon",             icon: Phone,        color: "text-purple-400" },
-  email:         { label: "Email",               icon: Mail,         color: "text-purple-400" },
-  password:      { label: "Parol",               icon: Lock,         color: "text-red-400" },
-  url:           { label: "URL",                 icon: Globe,        color: "text-cyan-400" },
-  date:          { label: "Sana",                icon: Calendar,     color: "text-orange-400" },
-  time:          { label: "Vaqt",                icon: Clock,        color: "text-orange-400" },
-  datetime:      { label: "Sana va Vaqt",        icon: Calendar,     color: "text-orange-400" },
-  radio:         { label: "Bitta tanlov",        icon: Circle,       color: "text-emerald-400" },
-  checkbox:      { label: "Ko\u02bbp tanlov",       icon: CheckSquare,  color: "text-emerald-400" },
-  dropdown:      { label: "Ro\u02bbyxatdan tanlash", icon: ChevronDown,  color: "text-emerald-400" },
-  multi_select:  { label: "Ko\u02bbp tanlash",       icon: CheckSquare,  color: "text-emerald-400" },
-  yes_no:        { label: "Ha / Yo\u02bbq",           icon: ToggleLeft,   color: "text-pink-400" },
-  rating:        { label: "Baholash",            icon: Star,         color: "text-amber-400" },
+  short_text:    { label: "Qisqa matn",          icon: Type,              color: "text-blue-400" },
+  long_text:     { label: "Uzun matn",           icon: AlignLeft,         color: "text-blue-400" },
+  number:        { label: "Raqam",               icon: Hash,              color: "text-purple-400" },
+  phone:         { label: "Telefon",             icon: Phone,             color: "text-purple-400" },
+  email:         { label: "Email",               icon: Mail,              color: "text-purple-400" },
+  password:      { label: "Parol",               icon: Lock,              color: "text-red-400" },
+  url:           { label: "URL Havola",          icon: Globe,             color: "text-cyan-400" },
+  date:          { label: "Sana",                icon: Calendar,          color: "text-orange-400" },
+  time:          { label: "Vaqt",                icon: Clock,             color: "text-orange-400" },
+  datetime:      { label: "Sana va Vaqt",        icon: Calendar,          color: "text-orange-400" },
+  radio:         { label: "Bitta tanlov",        icon: Circle,            color: "text-emerald-400" },
+  checkbox:      { label: "Ko'p tanlov",         icon: CheckSquare,       color: "text-emerald-400" },
+  dropdown:      { label: "Ro'yxatdan tanlash",  icon: ChevronDown,       color: "text-emerald-400" },
+  multi_select:  { label: "Ko'p tanlash",        icon: CheckSquare,       color: "text-emerald-400" },
+  yes_no:        { label: "Ha / Yo'q",           icon: ToggleLeft,        color: "text-pink-400" },
+  rating:        { label: "Baholash (Yulduz)",   icon: Star,              color: "text-amber-400" },
   linear_scale:  { label: "Chiziqli shkala",     icon: SlidersHorizontal, color: "text-amber-400" },
-  file_upload:   { label: "Fayl yuklash",        icon: Upload,       color: "text-slate-400" },
-  image_upload:  { label: "Rasm yuklash",        icon: Upload,       color: "text-slate-400" },
-  jshshir:       { label: "JSHSHIR",             icon: CreditCard,   color: "text-rose-400" },
-  passport:      { label: "Pasport",             icon: UserCheck,    color: "text-rose-400" },
-  student_id:    { label: "Talaba ID",           icon: GraduationCap, color: "text-rose-400" },
-  location:      { label: "Joylashuv",           icon: MapPin,       color: "text-cyan-400" },
+  file_upload:   { label: "Fayl yuklash",        icon: Upload,            color: "text-slate-400" },
+  image_upload:  { label: "Rasm yuklash",        icon: Upload,            color: "text-slate-400" },
+  jshshir:       { label: "JSHSHIR",             icon: CreditCard,        color: "text-rose-400" },
+  passport:      { label: "Pasport",             icon: UserCheck,         color: "text-rose-400" },
+  student_id:    { label: "Talaba ID",           icon: GraduationCap,     color: "text-rose-400" },
+  location:      { label: "Joylashuv",           icon: MapPin,            color: "text-cyan-400" },
 };
 
 const CHOICE_TYPES = ["radio", "checkbox", "dropdown", "multi_select"];
 
-// ─── Auto-grow textarea ───────────────────────────────────────────────────────
+// ─── Auto-grow textarea for Question Title ────────────────────────────────────
 function AutoTextarea({
-  value, onChange, placeholder, className,
+  value,
+  onChange,
+  placeholder,
+  className,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -64,10 +89,10 @@ function AutoTextarea({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       rows={1}
-      className={`w-full resize-none bg-transparent border-none outline-none overflow-hidden leading-snug
-        placeholder:text-slate-600
-        border-b-2 border-transparent focus:border-blue-500
-        transition-colors pb-0.5
+      className={`w-full resize-none bg-transparent border-none outline-none overflow-hidden leading-relaxed
+        placeholder:text-slate-500
+        border-b-2 border-slate-700/60 focus:border-blue-500
+        transition-colors pb-1 text-xl font-bold text-white
         ${className}`}
     />
   );
@@ -75,7 +100,8 @@ function AutoTextarea({
 
 // ─── Answer preview by type ───────────────────────────────────────────────────
 function AnswerPreview({
-  question, onUpdate,
+  question,
+  onUpdate,
 }: {
   question: Question;
   onUpdate: (q: Question) => void;
@@ -92,7 +118,9 @@ function AnswerPreview({
         ...question,
         config: {
           ...question.config,
-          options: options.map((o) => o.id === id ? { ...o, label, value: label.toLowerCase().replace(/\s+/g, "_") } : o),
+          options: options.map((o) =>
+            o.id === id ? { ...o, label, value: label.toLowerCase().replace(/\s+/g, "_") } : o
+          ),
         },
       });
     };
@@ -107,34 +135,37 @@ function AnswerPreview({
     };
 
     const deleteOption = (id: string) => {
-      onUpdate({ ...question, config: { ...question.config, options: options.filter((o) => o.id !== id) } });
+      onUpdate({
+        ...question,
+        config: { ...question.config, options: options.filter((o) => o.id !== id) },
+      });
     };
 
     return (
-      <div className="mt-3 space-y-1.5 pl-1">
+      <div className="mt-4 space-y-2.5 pl-1">
         {options.map((opt, i) => (
-          <div key={opt.id} className="flex items-center gap-2 group">
-            <Icon className="h-4 w-4 shrink-0 text-slate-600" />
+          <div key={opt.id} className="flex items-center gap-3 group">
+            <Icon className="h-4 w-4 shrink-0 text-slate-500" />
             <input
               value={opt.label}
               onChange={(e) => updateOption(opt.id, e.target.value)}
-              placeholder={`${i + 1}-variant`}
-              className="flex-1 bg-transparent border-none outline-none text-sm text-slate-200 placeholder:text-slate-600
-                border-b-2 border-transparent focus:border-blue-500 transition-colors pb-0.5"
+              placeholder={`${i + 1}-variant...`}
+              className="flex-1 bg-transparent border-none outline-none text-base text-slate-100 placeholder:text-slate-500
+                border-b border-slate-800 focus:border-blue-500 transition-colors pb-1"
             />
             <button
               onClick={() => deleteOption(opt.id)}
-              className="opacity-0 group-hover:opacity-100 text-slate-600 hover:text-red-400 transition-all"
+              className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 transition-all p-1"
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-4 w-4" />
             </button>
           </div>
         ))}
         <button
           onClick={addOption}
-          className="flex items-center gap-2 text-xs text-slate-500 hover:text-blue-400 transition-colors mt-1 pl-6"
+          className="flex items-center gap-2 text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors mt-2 pl-7"
         >
-          <Plus className="h-3.5 w-3.5" /> Variant qo\u02bbshish
+          <Plus className="h-4 w-4" /> Variant qo'shish
         </button>
       </div>
     );
@@ -143,9 +174,9 @@ function AnswerPreview({
   // Rating
   if (type === "rating") {
     return (
-      <div className="mt-3 flex gap-1.5 pl-1">
+      <div className="mt-4 flex gap-2 pl-1">
         {[1, 2, 3, 4, 5].map((n) => (
-          <Star key={n} className="h-6 w-6 text-slate-700" />
+          <Star key={n} className="h-7 w-7 text-slate-700 hover:text-amber-400 cursor-pointer transition-colors" />
         ))}
       </div>
     );
@@ -154,11 +185,11 @@ function AnswerPreview({
   // Yes/No
   if (type === "yes_no") {
     return (
-      <div className="mt-3 flex gap-3 pl-1">
-        {["Ha", "Yo\u02bbq"].map((lbl) => (
-          <div key={lbl} className="flex items-center gap-2">
-            <Circle className="h-4 w-4 text-slate-600" />
-            <span className="text-sm text-slate-500">{lbl}</span>
+      <div className="mt-4 flex gap-4 pl-1">
+        {["Ha", "Yo'q"].map((lbl) => (
+          <div key={lbl} className="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-slate-950 border border-slate-800">
+            <Circle className="h-4 w-4 text-slate-500" />
+            <span className="text-sm font-semibold text-slate-300">{lbl}</span>
           </div>
         ))}
       </div>
@@ -168,10 +199,10 @@ function AnswerPreview({
   // Linear scale
   if (type === "linear_scale") {
     return (
-      <div className="mt-3 flex gap-2 pl-1 items-center">
-        <span className="text-xs text-slate-500">1</span>
-        <div className="flex-1 h-1 rounded-full bg-slate-800" />
-        <span className="text-xs text-slate-500">10</span>
+      <div className="mt-4 flex gap-3 pl-1 items-center">
+        <span className="text-xs font-bold text-slate-400">1</span>
+        <div className="flex-1 h-2 rounded-full bg-slate-800" />
+        <span className="text-xs font-bold text-slate-400">10</span>
       </div>
     );
   }
@@ -179,9 +210,9 @@ function AnswerPreview({
   // Date/Time
   if (type === "date" || type === "datetime") {
     return (
-      <div className="mt-3 pl-1">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-500">
-          <Calendar className="h-3.5 w-3.5" />
+      <div className="mt-4 pl-1">
+        <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-400">
+          <Calendar className="h-4 w-4 text-amber-400" />
           Kun / Oy / Yil
         </div>
       </div>
@@ -190,10 +221,10 @@ function AnswerPreview({
 
   if (type === "time") {
     return (
-      <div className="mt-3 pl-1">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-500">
-          <Clock className="h-3.5 w-3.5" />
-          SS : DD
+      <div className="mt-4 pl-1">
+        <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-400">
+          <Clock className="h-4 w-4 text-amber-400" />
+          Soat : Daqiqa
         </div>
       </div>
     );
@@ -202,9 +233,9 @@ function AnswerPreview({
   // Long text
   if (type === "long_text") {
     return (
-      <div className="mt-3 pl-1">
-        <div className="w-full h-16 rounded-lg bg-slate-900/50 border border-slate-800/60 border-dashed flex items-start p-2">
-          <span className="text-xs text-slate-700">Javob matni bu yerda bo\u02bblib turadi...</span>
+      <div className="mt-4 pl-1">
+        <div className="w-full h-20 rounded-xl bg-slate-950 border border-slate-800 border-dashed flex items-start p-3">
+          <span className="text-sm text-slate-500">Batafsil javob matni bu yerda yoziladi...</span>
         </div>
       </div>
     );
@@ -213,23 +244,23 @@ function AnswerPreview({
   // File upload
   if (type === "file_upload" || type === "image_upload") {
     return (
-      <div className="mt-3 pl-1">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-900 border border-dashed border-slate-700 text-xs text-slate-500 w-fit">
-          <Upload className="h-3.5 w-3.5" />
-          Fayl yuklash
+      <div className="mt-4 pl-1">
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-950 border border-dashed border-slate-700 text-sm text-slate-400 w-fit">
+          <Upload className="h-4 w-4 text-slate-400" />
+          Fayl yuklash uchun shablon
         </div>
       </div>
     );
   }
 
-  // Default: single-line text preview (with phone special case)
+  // Phone special case
   if (type === "phone") {
     return (
-      <div className="mt-3 pl-1">
-        <div className="flex items-center gap-2 w-fit">
-          <Phone className="h-4 w-4 text-slate-600" />
-          <span className="text-sm font-mono text-slate-600 border-b-2 border-slate-800 tracking-widest px-1">
-            +998 (__) ___-__-__
+      <div className="mt-4 pl-1">
+        <div className="flex items-center gap-2.5 w-fit bg-slate-950 px-3.5 py-2 rounded-xl border border-slate-800">
+          <Phone className="h-4 w-4 text-blue-400" />
+          <span className="text-sm font-mono text-blue-400 tracking-wider">
+            +998 (90) 123-45-67
           </span>
         </div>
       </div>
@@ -237,15 +268,15 @@ function AnswerPreview({
   }
 
   return (
-    <div className="mt-3 pl-1">
-      <div className="w-full border-b-2 border-slate-800 pb-1">
-        <span className="text-xs text-slate-700">{question.placeholder || "Javob..."}</span>
+    <div className="mt-4 pl-1">
+      <div className="w-full border-b border-slate-800 pb-2">
+        <span className="text-sm text-slate-500">{question.placeholder || "Javob kiriting..."}</span>
       </div>
     </div>
   );
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// ─── Main Component ───────────────────────────────────────────────────────────
 interface QuestionEditorCardProps {
   question: Question;
   index: number;
@@ -260,8 +291,16 @@ interface QuestionEditorCardProps {
 }
 
 export default function QuestionEditorCard({
-  question, index, totalQuestions, isSelected,
-  onSelect, onUpdate, onDuplicate, onDelete, onMoveUp, onMoveDown,
+  question,
+  index,
+  totalQuestions,
+  isSelected,
+  onSelect,
+  onUpdate,
+  onDuplicate,
+  onDelete,
+  onMoveUp,
+  onMoveDown,
 }: QuestionEditorCardProps) {
   const cfg = TYPE_CONFIG[question.type] || { label: question.type, icon: Type, color: "text-slate-400" };
   const Icon = cfg.icon;
@@ -269,30 +308,30 @@ export default function QuestionEditorCard({
   return (
     <div
       onClick={onSelect}
-      className={`group relative rounded-2xl transition-all duration-200 cursor-text ${
+      className={`group relative rounded-2xl transition-all duration-200 cursor-text p-1 ${
         isSelected
-          ? "bg-slate-900 border-2 border-blue-500 shadow-lg shadow-blue-500/10"
+          ? "bg-slate-900 border-2 border-blue-500 shadow-xl shadow-blue-500/10"
           : "bg-slate-900/60 border-2 border-slate-800/60 hover:border-slate-700"
       }`}
     >
       {/* Active left border accent */}
       {isSelected && (
-        <div className="absolute left-0 top-4 bottom-4 w-1 bg-blue-500 rounded-full -translate-x-[1px]" />
+        <div className="absolute left-0 top-4 bottom-4 w-1.5 bg-blue-500 rounded-full -translate-x-[1px]" />
       )}
 
       {/* Top row */}
-      <div className="flex items-center justify-between px-5 pt-4 pb-1">
-        <div className="flex items-center gap-2">
-          <span className="cursor-grab text-slate-700 hover:text-slate-400">
+      <div className="flex items-center justify-between px-6 pt-5 pb-2">
+        <div className="flex items-center gap-2.5">
+          <span className="cursor-grab text-slate-600 hover:text-slate-300">
             <GripVertical className="h-4 w-4" />
           </span>
-          <span className="text-xs font-bold text-slate-600">{index + 1}</span>
-          <div className={`flex items-center gap-1.5 text-[10px] font-bold ${cfg.color}`}>
-            <Icon className="h-3.5 w-3.5" />
+          <span className="text-xs font-bold text-slate-400">{index + 1}</span>
+          <div className={`flex items-center gap-1.5 text-xs font-bold ${cfg.color}`}>
+            <Icon className="h-4 w-4" />
             {cfg.label}
           </div>
           {question.required && (
-            <span className="text-[10px] font-bold text-red-400 bg-red-400/10 px-1.5 py-0.5 rounded-md">
+            <span className="text-[10px] font-bold text-red-400 bg-red-400/10 border border-red-400/20 px-2 py-0.5 rounded-md">
               Majburiy
             </span>
           )}
@@ -300,59 +339,90 @@ export default function QuestionEditorCard({
 
         {/* Actions — show on hover or selected */}
         <div
-          className={`flex items-center gap-0.5 transition-opacity ${isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+          className={`flex items-center gap-1 transition-opacity ${
+            isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          }`}
           onClick={(e) => e.stopPropagation()}
         >
-          <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-600 hover:text-white disabled:opacity-20" disabled={index === 0} onClick={onMoveUp}>
-            <ArrowUp className="h-3.5 w-3.5" />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-slate-500 hover:text-white disabled:opacity-20"
+            disabled={index === 0}
+            onClick={onMoveUp}
+          >
+            <ArrowUp className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-600 hover:text-white disabled:opacity-20" disabled={index === totalQuestions - 1} onClick={onMoveDown}>
-            <ArrowDown className="h-3.5 w-3.5" />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-slate-500 hover:text-white disabled:opacity-20"
+            disabled={index === totalQuestions - 1}
+            onClick={onMoveDown}
+          >
+            <ArrowDown className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7 text-blue-400 hover:text-blue-300" onClick={onDuplicate}>
-            <Copy className="h-3.5 w-3.5" />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-blue-400 hover:text-blue-300"
+            onClick={onDuplicate}
+          >
+            <Copy className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:text-red-300" onClick={onDelete}>
-            <Trash2 className="h-3.5 w-3.5" />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-red-400 hover:text-red-300"
+            onClick={onDelete}
+          >
+            <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      {/* Question label — inline editable */}
-      <div className="px-5 pb-1" onClick={(e) => e.stopPropagation()}>
+      {/* Question title — large inline editor */}
+      <div className="px-6 pb-2" onClick={(e) => e.stopPropagation()}>
         <AutoTextarea
           value={question.label}
           onChange={(v) => onUpdate({ ...question, label: v })}
-          placeholder="Savol matni..."
-          className="text-base font-semibold text-white"
+          placeholder="Savol matnini bu yerga yozing..."
+          className="text-xl font-bold text-white placeholder:text-slate-500"
         />
-        {/* Help text */}
+
+        {/* Help text — expanded and clear */}
         {isSelected && (
           <input
             value={question.help_text || ""}
             onChange={(e) => onUpdate({ ...question, help_text: e.target.value })}
-            placeholder="Izoh yoki qo\u02bbshimcha tushuntirish (ixtiyoriy)..."
-            className="w-full bg-transparent border-b-2 border-transparent focus:border-blue-500 outline-none text-xs text-slate-500 placeholder:text-slate-700 mt-1 transition-colors pb-0.5"
+            placeholder="Izoh yoki qo'shimcha tushuntirish (ixtiyoriy)..."
+            className="w-full bg-transparent border-b border-slate-800 focus:border-blue-500 outline-none text-sm text-slate-300 placeholder:text-slate-500 mt-2 transition-colors pb-1 font-medium"
           />
         )}
       </div>
 
       {/* Answer preview area */}
-      <div className="px-5 pb-4" onClick={(e) => e.stopPropagation()}>
+      <div className="px-6 pb-5" onClick={(e) => e.stopPropagation()}>
         <AnswerPreview question={question} onUpdate={onUpdate} />
       </div>
 
-      {/* Bottom: required toggle when selected */}
+      {/* Bottom bar: Required toggle when selected */}
       {isSelected && (
-        <div className="border-t border-slate-800 px-5 py-2.5 flex items-center justify-between">
-          <label className="flex items-center gap-2 cursor-pointer group/req">
+        <div className="border-t border-slate-800/80 px-6 py-3 flex items-center justify-between">
+          <label className="flex items-center gap-3 cursor-pointer group/req">
             <div
               onClick={() => onUpdate({ ...question, required: !question.required })}
-              className={`relative w-8 h-4 rounded-full transition-colors ${question.required ? "bg-blue-600" : "bg-slate-700"}`}
+              className={`relative w-9 h-5 rounded-full transition-colors ${
+                question.required ? "bg-blue-600" : "bg-slate-700"
+              }`}
             >
-              <div className={`absolute top-0.5 h-3 w-3 rounded-full bg-white transition-transform shadow ${question.required ? "translate-x-4" : "translate-x-0.5"}`} />
+              <div
+                className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform shadow ${
+                  question.required ? "translate-x-4.5" : "translate-x-0.5"
+                }`}
+              />
             </div>
-            <span className="text-xs font-semibold text-slate-400 group-hover/req:text-white transition-colors">
+            <span className="text-xs font-bold text-slate-300 group-hover/req:text-white transition-colors">
               Majburiy savol
             </span>
           </label>
