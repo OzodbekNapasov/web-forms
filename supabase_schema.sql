@@ -51,8 +51,24 @@ CREATE TABLE IF NOT EXISTS public.response_answers (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
--- 5. Open Permissions (Disable RLS for public app access)
+-- 5. Create Admins Table (Adminlar Login va Parollarini Boshqarish)
+CREATE TABLE IF NOT EXISTS public.admins (
+    id TEXT PRIMARY KEY,
+    username TEXT UNIQUE NOT NULL,
+    full_name TEXT NOT NULL,
+    password TEXT NOT NULL,
+    role TEXT DEFAULT 'admin',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- 6. Open Permissions (Disable RLS for public app access)
 ALTER TABLE public.surveys DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.survey_questions DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.responses DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.response_answers DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.admins DISABLE ROW LEVEL SECURITY;
+
+-- Dastlabki Bosh Admin foydalanuvchisini kiritish
+INSERT INTO public.admins (id, username, full_name, password, role)
+VALUES ('admin-001', 'Ozodbek', 'Ozodbek Napasov', 'Eua5gd007', 'super_admin')
+ON CONFLICT (username) DO NOTHING;

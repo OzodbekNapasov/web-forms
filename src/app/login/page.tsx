@@ -8,29 +8,28 @@ import { Input } from "@/components/ui/input";
 import { GraduationCap, Lock, User, ShieldCheck, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
+import { AdminAuthService } from "@/lib/services/adminAuthService";
+
 export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    setTimeout(() => {
-      const cleanUsername = username.trim().toLowerCase();
-      const validLogins = ["ozodbek", "ozodbek@edusurvey.uz", "admin", "admin@edusurvey.edu.uz"];
+    const result = await AdminAuthService.authenticate(username, password);
 
-      if (validLogins.includes(cleanUsername) && password === "Eua5gd007") {
-        document.cookie = "edusurvey_admin_session=authenticated; path=/; max-age=86400;";
-        toast.success("Xush kelibsiz, Ozodbek! Tizimga kirdingiz.");
-        router.push("/admin");
-      } else {
-        toast.error("Xato login yoki parol! Ma'lumotlaringizni qayta tekshiring.");
-      }
-      setIsLoading(false);
-    }, 400);
+    setIsLoading(false);
+    if (result.success && result.user) {
+      document.cookie = "edusurvey_admin_session=authenticated; path=/; max-age=86400;";
+      toast.success(`Xush kelibsiz, ${result.user.full_name || result.user.username}! Tizimga kirdingiz.`);
+      router.push("/admin");
+    } else {
+      toast.error("Xato login yoki parol! Ma'lumotlaringizni qayta tekshiring.");
+    }
   };
 
   return (
