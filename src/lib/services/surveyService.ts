@@ -249,6 +249,13 @@ export class SurveyService {
     } catch {}
   }
 
+  private static makeFormulaSafe(val: any): any {
+    if (typeof val === "string" && (val.startsWith("+") || val.startsWith("="))) {
+      return "'" + val;
+    }
+    return val;
+  }
+
   public static buildRowDataForGoogleSheets(
     survey: Survey | null,
     resp: SurveyResponse
@@ -267,48 +274,50 @@ export class SurveyService {
 
     if (resp.respondent_meta) {
       if (resp.respondent_meta.group) {
-        rowData["Guruhingiz"] = resp.respondent_meta.group;
-        rowData["Guruh"] = resp.respondent_meta.group;
+        rowData["Guruhingiz"] = this.makeFormulaSafe(resp.respondent_meta.group);
+        rowData["Guruh"] = this.makeFormulaSafe(resp.respondent_meta.group);
       }
       if (resp.respondent_meta.course) {
-        rowData["Yo'nalish"] = resp.respondent_meta.course;
-        rowData["Yoʻnalish"] = resp.respondent_meta.course;
+        rowData["Yo'nalish"] = this.makeFormulaSafe(resp.respondent_meta.course);
+        rowData["Yoʻnalish"] = this.makeFormulaSafe(resp.respondent_meta.course);
       }
     }
 
     if (survey && survey.questions && survey.questions.length > 0) {
       survey.questions.forEach((q) => {
         const ans = resp.answers?.find((a) => a.question_id === q.id);
-        const val =
+        const rawVal =
           ans && ans.value !== undefined
             ? typeof ans.value === "object"
               ? JSON.stringify(ans.value)
               : String(ans.value)
             : "";
 
+        const safeVal = this.makeFormulaSafe(rawVal);
+
         if (q.label) {
           const rawLabel = q.label.trim();
-          rowData[rawLabel] = val;
+          rowData[rawLabel] = safeVal;
 
           const asciiLabel = rawLabel.replace(/[ʻ’`]/g, "'");
-          rowData[asciiLabel] = val;
+          rowData[asciiLabel] = safeVal;
 
           const unicodeLabel = rawLabel.replace(/'/g, "ʻ");
-          rowData[unicodeLabel] = val;
+          rowData[unicodeLabel] = safeVal;
 
           const underscoreLabel = asciiLabel.replace(/'/g, "_");
-          rowData[underscoreLabel] = val;
+          rowData[underscoreLabel] = safeVal;
         }
 
-        rowData[q.id] = val;
+        rowData[q.id] = safeVal;
       });
     }
 
     if (resp.answers) {
       resp.answers.forEach((a) => {
         if (a.question_id && rowData[a.question_id] === undefined) {
-          rowData[a.question_id] =
-            typeof a.value === "object" ? JSON.stringify(a.value) : String(a.value);
+          const rawVal = typeof a.value === "object" ? JSON.stringify(a.value) : String(a.value);
+          rowData[a.question_id] = this.makeFormulaSafe(rawVal);
         }
       });
     }

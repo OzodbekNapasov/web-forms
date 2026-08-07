@@ -38,7 +38,11 @@ const GOOGLE_APPS_SCRIPT_CODE = `function doPost(e) {
 
     var row = [];
     headers.forEach(function(header) {
-      row.push(data[header] !== undefined ? data[header] : "");
+      var val = data[header] !== undefined ? data[header] : "";
+      if (typeof val === "string" && (val.indexOf("+") === 0 || val.indexOf("=") === 0)) {
+        val = "'" + val;
+      }
+      row.push(val);
     });
 
     sheet.appendRow(row);
