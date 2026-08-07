@@ -324,7 +324,7 @@ function SurveyBuilderCanvas({ initialSurvey }: { initialSurvey: Survey }) {
                   onClick={() => setIsCoverModalOpen(true)}
                   className="h-8 text-xs gap-1.5 border-blue-500/40 bg-blue-950/40 text-blue-400 hover:bg-blue-900/60 font-bold"
                 >
-                  <ImageIcon className="h-3.5 w-3.5" /> 🖼️ Muqova Rasmini Qoʻshish (Banner)
+                  <ImageIcon className="h-3.5 w-3.5 text-blue-400" /> Muqova Rasmini Qoʻshish (Banner)
                 </Button>
               </div>
             )}
