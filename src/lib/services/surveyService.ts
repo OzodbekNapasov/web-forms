@@ -169,11 +169,19 @@ export class SurveyService {
         };
       });
 
+      const localResp = this.getResponses(surveyId);
+      const mergedMap = new Map<string, SurveyResponse>();
+      localResp.forEach((r) => mergedMap.set(r.id, r));
+      fullResponses.forEach((r) => mergedMap.set(r.id, r));
+      const mergedList = Array.from(mergedMap.values()).sort(
+        (a, b) => new Date(b.completed_at || 0).getTime() - new Date(a.completed_at || 0).getTime()
+      );
+
       if (typeof window !== "undefined") {
-        localStorage.setItem(this.STORAGE_KEY_RESPONSES, JSON.stringify(fullResponses));
+        localStorage.setItem(this.STORAGE_KEY_RESPONSES, JSON.stringify(mergedList));
       }
 
-      return fullResponses;
+      return mergedList;
     } catch {
       return this.getResponses(surveyId);
     }

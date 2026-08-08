@@ -7,8 +7,8 @@ import { AdvancedExportService } from "@/features/responses/services/advancedExp
 import { Survey, SurveyResponse, GoogleSheetsConfig } from "@/types/survey";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { formatDate, formatAnswerDateToUzbek } from "@/lib/utils";
-import ResponseFiltersToolbar from "@/features/responses/components/ResponseFiltersToolbar";
 import SyncQueueAdminManager from "@/features/responses/components/SyncQueueAdminManager";
 import GoogleSheetsConfigModal from "@/components/dashboard/GoogleSheetsConfigModal";
 import ResponseDetailModal from "@/components/dashboard/ResponseDetailModal";
@@ -21,6 +21,8 @@ import {
   MessageSquare,
   Send,
   RefreshCw,
+  FilterX,
+  Search,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -28,10 +30,9 @@ export default function SurveyResponsesPage({ params }: { params: Promise<{ id: 
   const resolvedParams = use(params);
   const [survey, setSurvey] = useState<Survey | null>(null);
   const [responses, setResponses] = useState<SurveyResponse[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [groupFilter, setGroupFilter] = useState("all");
-  const [genderFilter, setGenderFilter] = useState("all");
-  const [courseFilter, setCourseFilter] = useState("all");
+
+  // Per-column filter state (Excel-like column filters)
+  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
 
   const [selectedResponse, setSelectedResponse] = useState<SurveyResponse | null>(null);
   const [sheetsConfig, setSheetsConfig] = useState<GoogleSheetsConfig | null>(null);
@@ -64,13 +65,49 @@ export default function SurveyResponsesPage({ params }: { params: Promise<{ id: 
     );
   }
 
+  const handleFilterChange = (key: string, val: string) => {
+    setColumnFilters((prev) => ({ ...prev, [key]: val }));
+  };
+
+  const handleClearFilters = () => {
+    setColumnFilters({});
+    toast.info("Barcha ustun filterlari tozalandi!");
+  };
+
+  // Excel-like multi-column filter matching
   const filteredResponses = responses.filter((r) => {
-    const matchId = r.submission_id.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchGroup = groupFilter === "all" || r.respondent_meta.group === groupFilter;
-    const matchGender = genderFilter === "all" || r.respondent_meta.gender === genderFilter;
-    const matchCourse = courseFilter === "all" || r.respondent_meta.course === courseFilter;
-    return matchId && matchGroup && matchGender && matchCourse;
+    // Check Topshiriq ID
+    if (columnFilters["submission_id"] && !r.submission_id.toLowerCase().includes(columnFilters["submission_id"].toLowerCase())) {
+      return false;
+    }
+    // Check Vaqt
+    if (columnFilters["completed_at"] && !formatDate(r.completed_at).toLowerCase().includes(columnFilters["completed_at"].toLowerCase())) {
+      return false;
+    }
+    // Check Guruh
+    if (columnFilters["group"] && !(r.respondent_meta.group || "").toLowerCase().includes(columnFilters["group"].toLowerCase())) {
+      return false;
+    }
+    // Check Yo'nalish
+    if (columnFilters["course"] && !(r.respondent_meta.course || "").toLowerCase().includes(columnFilters["course"].toLowerCase())) {
+      return false;
+    }
+    // Check each Question column filter
+    for (const q of survey.questions || []) {
+      const filterVal = columnFilters[q.id];
+      if (filterVal) {
+        const ans = r.answers.find((a) => a.question_id === q.id);
+        const rawStr = ans ? (Array.isArray(ans.value) ? ans.value.join(", ") : String(ans.value)) : "";
+        const formattedStr = formatAnswerDateToUzbek(rawStr);
+        if (!formattedStr.toLowerCase().includes(filterVal.toLowerCase())) {
+          return false;
+        }
+      }
+    }
+    return true;
   });
+
+  const hasActiveFilters = Object.values(columnFilters).some((val) => val.trim() !== "");
 
   const handleSaveSheetsConfig = (updated: GoogleSheetsConfig) => {
     SurveyService.saveSheetsConfig(updated);
@@ -78,14 +115,7 @@ export default function SurveyResponsesPage({ params }: { params: Promise<{ id: 
     setIsSheetsModalOpen(false);
   };
 
-  const handleResetFilters = () => {
-    setSearchQuery("");
-    setGroupFilter("all");
-    setGenderFilter("all");
-    setCourseFilter("all");
-  };
-
-  // ─── Single Response Sync to Google Sheets ──────────────────────────────────
+  // Single Response Sync to Google Sheets
   const syncSingleResponseToSheets = async (resp: SurveyResponse) => {
     setSyncingRowId(resp.id);
     toast.info(`Javob #${resp.submission_id} Google Sheets'ga yuborilmoqda...`);
@@ -129,7 +159,7 @@ export default function SurveyResponsesPage({ params }: { params: Promise<{ id: 
     }
   };
 
-  // ─── Batch Sync All Responses to Google Sheets ──────────────────────────────
+  // Batch Sync All Responses to Google Sheets
   const syncAllResponsesToSheets = async () => {
     if (filteredResponses.length === 0) {
       toast.error("Yuborish uchun javoblar mavjud emas!");
@@ -178,10 +208,11 @@ export default function SurveyResponsesPage({ params }: { params: Promise<{ id: 
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
+      {/* Top Header & Export Toolbar */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-slate-800 pb-4">
         <div className="flex items-center gap-3">
           <Link href="/admin/surveys">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="rounded-xl">
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
@@ -190,11 +221,24 @@ export default function SurveyResponsesPage({ params }: { params: Promise<{ id: 
               Javoblar Bazasi
               <TableIcon className="h-5 w-5 text-purple-500" />
             </h1>
-            <p className="text-xs font-medium text-slate-400">{survey.title} • jami {responses.length} ta topshirilgan javob</p>
+            <p className="text-xs font-medium text-slate-400">
+              {survey.title} • {filteredResponses.length} / {responses.length} ta topshirilgan javob
+            </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          {hasActiveFilters && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleClearFilters}
+              className="gap-1.5 bg-red-600/80 hover:bg-red-600 text-white text-xs font-bold"
+            >
+              <FilterX className="h-4 w-4" /> Filterlarni Tozalash
+            </Button>
+          )}
+
           <Button
             variant="outline"
             size="sm"
@@ -222,7 +266,7 @@ export default function SurveyResponsesPage({ params }: { params: Promise<{ id: 
           <Button
             variant="outline"
             size="sm"
-            onClick={() => AdvancedExportService.exportExcelProfessional(survey, responses)}
+            onClick={() => AdvancedExportService.exportExcelProfessional(survey, filteredResponses)}
             className="gap-1.5 border-slate-800 bg-slate-900 text-blue-400 text-xs font-bold"
           >
             <Download className="h-4 w-4 text-blue-500" /> Excel (.xlsx)
@@ -230,7 +274,7 @@ export default function SurveyResponsesPage({ params }: { params: Promise<{ id: 
 
           <Button
             size="sm"
-            onClick={() => AdvancedExportService.exportPdfExecutiveReport(survey, responses)}
+            onClick={() => AdvancedExportService.exportPdfExecutiveReport(survey, filteredResponses)}
             className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-600/30"
           >
             <Download className="h-4 w-4" /> Rasmiy PDF
@@ -240,19 +284,7 @@ export default function SurveyResponsesPage({ params }: { params: Promise<{ id: 
 
       <SyncQueueAdminManager />
 
-      <ResponseFiltersToolbar
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        groupFilter={groupFilter}
-        setGroupFilter={setGroupFilter}
-        genderFilter={genderFilter}
-        setGenderFilter={setGenderFilter}
-        courseFilter={courseFilter}
-        setCourseFilter={setCourseFilter}
-        onReset={handleResetFilters}
-      />
-
-      {filteredResponses.length === 0 ? (
+      {responses.length === 0 ? (
         <Card className="glass-card p-12 text-center rounded-2xl border-slate-800 space-y-4">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-purple-600/20 text-purple-400 border border-purple-500/30 shadow-xl">
             <MessageSquare className="h-8 w-8" />
@@ -263,62 +295,135 @@ export default function SurveyResponsesPage({ params }: { params: Promise<{ id: 
           </div>
         </Card>
       ) : (
-        <Card className="glass-card overflow-hidden p-0 rounded-2xl border-slate-800">
-          <div className="overflow-x-auto">
+        <Card className="glass-card overflow-hidden p-0 rounded-2xl border-slate-800 shadow-2xl">
+          {/* EXCEL-LIKE INTERACTIVE DATA TABLE WITH COLUMN FILTERS */}
+          <div className="overflow-x-auto max-h-[75vh]">
             <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-slate-900 text-slate-300 font-bold border-b border-slate-800">
-                  <th className="p-3.5">Topshiriq ID</th>
-                  <th className="p-3.5">Topshirilgan vaqt</th>
-                  <th className="p-3.5">Guruh</th>
-                  <th className="p-3.5">Yoʻnalish</th>
-                  {(survey.questions || []).slice(0, 3).map((q) => (
-                    <th key={q.id} className="p-3.5 max-w-xs truncate">{q.label}</th>
+              <thead className="sticky top-0 z-20 bg-slate-950/95 backdrop-blur-md shadow-md border-b border-slate-800">
+                {/* Row 1: Column Header Labels */}
+                <tr className="text-slate-200 font-bold border-b border-slate-800/80">
+                  <th className="p-3 min-w-[140px] text-blue-400 font-bold">Topshiriq ID</th>
+                  <th className="p-3 min-w-[150px] text-slate-300 font-bold">Topshirilgan vaqt</th>
+                  <th className="p-3 min-w-[120px] text-slate-300 font-bold">Guruh</th>
+                  <th className="p-3 min-w-[130px] text-slate-300 font-bold">Yoʻnalish</th>
+                  {(survey.questions || []).map((q, qIdx) => (
+                    <th key={q.id} className="p-3 min-w-[180px] max-w-[260px] text-slate-200 font-bold leading-snug">
+                      <span className="text-[11px] text-purple-400 mr-1">{qIdx + 1}.</span> {q.label}
+                    </th>
                   ))}
-                  <th className="p-3.5 text-right">Harakatlar</th>
+                  <th className="p-3 min-w-[160px] text-right text-slate-300 font-bold">Harakatlar</th>
+                </tr>
+
+                {/* Row 2: Excel-Like Column Filter Inputs */}
+                <tr className="bg-slate-900/90 border-b border-slate-800">
+                  <th className="p-2">
+                    <Input
+                      value={columnFilters["submission_id"] || ""}
+                      onChange={(e) => handleFilterChange("submission_id", e.target.value)}
+                      placeholder="ID bo'yicha filter..."
+                      className="h-7 text-[11px] bg-slate-950 border-slate-800 text-white placeholder:text-slate-500 rounded-lg"
+                    />
+                  </th>
+                  <th className="p-2">
+                    <Input
+                      value={columnFilters["completed_at"] || ""}
+                      onChange={(e) => handleFilterChange("completed_at", e.target.value)}
+                      placeholder="Vaqt bo'yicha..."
+                      className="h-7 text-[11px] bg-slate-950 border-slate-800 text-white placeholder:text-slate-500 rounded-lg"
+                    />
+                  </th>
+                  <th className="p-2">
+                    <Input
+                      value={columnFilters["group"] || ""}
+                      onChange={(e) => handleFilterChange("group", e.target.value)}
+                      placeholder="Guruh..."
+                      className="h-7 text-[11px] bg-slate-950 border-slate-800 text-white placeholder:text-slate-500 rounded-lg"
+                    />
+                  </th>
+                  <th className="p-2">
+                    <Input
+                      value={columnFilters["course"] || ""}
+                      onChange={(e) => handleFilterChange("course", e.target.value)}
+                      placeholder="Yo'nalish..."
+                      className="h-7 text-[11px] bg-slate-950 border-slate-800 text-white placeholder:text-slate-500 rounded-lg"
+                    />
+                  </th>
+                  {(survey.questions || []).map((q) => (
+                    <th key={q.id} className="p-2">
+                      <Input
+                        value={columnFilters[q.id] || ""}
+                        onChange={(e) => handleFilterChange(q.id, e.target.value)}
+                        placeholder="Filterlash..."
+                        className="h-7 text-[11px] bg-slate-950 border-slate-800 text-white placeholder:text-slate-500 rounded-lg"
+                      />
+                    </th>
+                  ))}
+                  <th className="p-2 text-right">
+                    {hasActiveFilters && (
+                      <button
+                        onClick={handleClearFilters}
+                        className="text-[10px] text-red-400 hover:text-red-300 font-bold underline cursor-pointer"
+                      >
+                        Tozalash
+                      </button>
+                    )}
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800 text-slate-200">
-                {filteredResponses.map((r) => (
-                  <tr key={r.id} className="hover:bg-slate-900/50 transition-colors">
-                    <td className="p-3.5 font-mono font-bold text-blue-400">{r.submission_id}</td>
-                    <td className="p-3.5 text-slate-400">{formatDate(r.completed_at)}</td>
-                    <td className="p-3.5 font-semibold">{r.respondent_meta.group || "-"}</td>
-                    <td className="p-3.5 font-semibold">{r.respondent_meta.course || "-"}</td>
-                    {(survey.questions || []).slice(0, 3).map((q) => {
-                      const ans = r.answers.find((a) => a.question_id === q.id);
-                      return (
-                        <td key={q.id} className="p-3.5 max-w-xs truncate text-slate-300">
-                          {ans
-                            ? formatAnswerDateToUzbek(
-                                Array.isArray(ans.value) ? ans.value.join(", ") : String(ans.value)
-                              )
-                            : "-"}
-                        </td>
-                      );
-                    })}
-                    <td className="p-3.5 text-right space-x-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={syncingRowId === r.id}
-                        onClick={() => syncSingleResponseToSheets(r)}
-                        className="gap-1 text-xs text-emerald-400 hover:bg-emerald-950/40 font-semibold"
-                        title="Ushbu javobni Google Sheets'ga yuborish"
-                      >
-                        {syncingRowId === r.id ? (
-                          <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <Send className="h-3.5 w-3.5 text-emerald-400" />
-                        )}
-                        Sheets'ga Yuborish
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => setSelectedResponse(r)} className="gap-1 text-xs text-blue-400">
-                        <Eye className="h-3.5 w-3.5" /> Koʻrish
-                      </Button>
+
+              <tbody className="divide-y divide-slate-800/80 text-slate-200">
+                {filteredResponses.length === 0 ? (
+                  <tr>
+                    <td colSpan={5 + (survey.questions?.length || 0)} className="p-8 text-center text-slate-400">
+                      <div className="flex flex-col items-center gap-2">
+                        <Search className="h-6 w-6 text-slate-500" />
+                        <span>Kiritilgan filterlar bo'yicha mos keladigan javob topilmadi.</span>
+                        <Button variant="link" onClick={handleClearFilters} className="text-xs text-blue-400">
+                          Filterlarni tozalash
+                        </Button>
+                      </div>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredResponses.map((r) => (
+                    <tr key={r.id} className="hover:bg-slate-900/60 transition-colors">
+                      <td className="p-3 font-mono font-bold text-blue-400">{r.submission_id}</td>
+                      <td className="p-3 text-slate-400">{formatDate(r.completed_at)}</td>
+                      <td className="p-3 font-semibold">{r.respondent_meta.group || "-"}</td>
+                      <td className="p-3 font-semibold">{r.respondent_meta.course || "-"}</td>
+                      {(survey.questions || []).map((q) => {
+                        const ans = r.answers.find((a) => a.question_id === q.id);
+                        const rawStr = ans ? (Array.isArray(ans.value) ? ans.value.join(", ") : String(ans.value)) : "-";
+                        const formattedStr = formatAnswerDateToUzbek(rawStr);
+                        return (
+                          <td key={q.id} className="p-3 max-w-[260px] truncate text-slate-300" title={formattedStr}>
+                            {formattedStr}
+                          </td>
+                        );
+                      })}
+                      <td className="p-3 text-right space-x-1 whitespace-nowrap">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={syncingRowId === r.id}
+                          onClick={() => syncSingleResponseToSheets(r)}
+                          className="gap-1 text-xs text-emerald-400 hover:bg-emerald-950/40 font-semibold"
+                          title="Ushbu javobni Google Sheets'ga yuborish"
+                        >
+                          {syncingRowId === r.id ? (
+                            <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Send className="h-3.5 w-3.5 text-emerald-400" />
+                          )}
+                          Sheets
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedResponse(r)} className="gap-1 text-xs text-blue-400">
+                          <Eye className="h-3.5 w-3.5" /> Koʻrish
+                        </Button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
