@@ -417,25 +417,22 @@ export class SurveyService {
     survey: Survey | null,
     resp: SurveyResponse
   ): Record<string, any> {
+    const dateFormatted = resp.completed_at
+      ? new Date(resp.completed_at).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" })
+      : new Date().toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" });
+
     const rowData: Record<string, any> = {
-      Vaqti: new Date(resp.completed_at || Date.now()).toLocaleString("uz-UZ", {
-        timeZone: "Asia/Tashkent",
-      }),
-      Javob_ID: resp.submission_id,
+      "Vaqti": dateFormatted,
       "Javob ID": resp.submission_id,
-      So_rovnoma: survey?.title || resp.survey_id,
-      "So'rovnoma": survey?.title || resp.survey_id,
       "Soʻrovnoma": survey?.title || resp.survey_id,
-      Holati: "Topshirildi",
+      "Holati": "Topshirildi",
     };
 
     if (resp.respondent_meta) {
       if (resp.respondent_meta.group) {
-        rowData["Guruhingiz"] = this.makeFormulaSafe(resp.respondent_meta.group);
         rowData["Guruh"] = this.makeFormulaSafe(resp.respondent_meta.group);
       }
       if (resp.respondent_meta.course) {
-        rowData["Yo'nalish"] = this.makeFormulaSafe(resp.respondent_meta.course);
         rowData["Yoʻnalish"] = this.makeFormulaSafe(resp.respondent_meta.course);
       }
     }
@@ -443,39 +440,20 @@ export class SurveyService {
     if (survey && survey.questions && survey.questions.length > 0) {
       survey.questions.forEach((q) => {
         const ans = resp.answers?.find((a) => a.question_id === q.id);
-        const rawVal =
-          ans && ans.value !== undefined
-            ? typeof ans.value === "object"
-              ? JSON.stringify(ans.value)
-              : String(ans.value)
-            : "";
+        let rawVal = "";
+        if (ans && ans.value !== undefined && ans.value !== null) {
+          if (Array.isArray(ans.value)) {
+            rawVal = ans.value.join(", ");
+          } else if (typeof ans.value === "object") {
+            rawVal = JSON.stringify(ans.value);
+          } else {
+            rawVal = String(ans.value);
+          }
+        }
 
         const safeVal = this.makeFormulaSafe(rawVal);
-
-        if (q.label) {
-          const rawLabel = q.label.trim();
-          rowData[rawLabel] = safeVal;
-
-          const asciiLabel = rawLabel.replace(/[ʻ’`]/g, "'");
-          rowData[asciiLabel] = safeVal;
-
-          const unicodeLabel = rawLabel.replace(/'/g, "ʻ");
-          rowData[unicodeLabel] = safeVal;
-
-          const underscoreLabel = asciiLabel.replace(/'/g, "_");
-          rowData[underscoreLabel] = safeVal;
-        }
-
-        rowData[q.id] = safeVal;
-      });
-    }
-
-    if (resp.answers) {
-      resp.answers.forEach((a) => {
-        if (a.question_id && rowData[a.question_id] === undefined) {
-          const rawVal = typeof a.value === "object" ? JSON.stringify(a.value) : String(a.value);
-          rowData[a.question_id] = this.makeFormulaSafe(rawVal);
-        }
+        const colHeader = (q.label && q.label.trim()) || `Savol (${q.id})`;
+        rowData[colHeader] = safeVal;
       });
     }
 
