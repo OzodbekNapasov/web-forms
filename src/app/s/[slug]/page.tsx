@@ -156,7 +156,7 @@ export default function StudentSurveyPortalPage({ params }: { params: Promise<{ 
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white py-10 px-4 sm:px-6">
+    <div className="min-h-screen bg-transparent text-white py-10 px-4 sm:px-6">
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header Card */}
         <motion.div initial={{ opacity: 0, y: -15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>

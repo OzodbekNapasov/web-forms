@@ -4,7 +4,7 @@ import AdminSidebar from "@/components/layout/AdminSidebar";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen flex flex-col bg-transparent">
       <Navbar />
       <div className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-6 flex gap-6">
         <AdminSidebar />
