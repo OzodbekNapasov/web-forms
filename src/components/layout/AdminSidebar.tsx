@@ -34,24 +34,37 @@ const NAV_ITEMS = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const safePathname = pathname || "";
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    try {
+      const saved = localStorage.getItem("sidebar_collapsed");
+      if (saved !== null) {
+        setIsCollapsed(JSON.parse(saved));
+      }
+    } catch {
+      // Ignore storage errors
+    }
+  }, []);
 
   // Hide left navigation sidebar when creating or editing a survey
-  if (pathname.includes("/builder/") || pathname.endsWith("/surveys/new")) {
+  if (safePathname.includes("/builder/") || safePathname.endsWith("/surveys/new")) {
     return null;
   }
 
-  useEffect(() => {
-    const saved = localStorage.getItem("sidebar_collapsed");
-    if (saved !== null) {
-      setIsCollapsed(JSON.parse(saved));
-    }
-  }, []);
+  if (!isMounted) return null;
 
   const toggleCollapse = () => {
     const next = !isCollapsed;
     setIsCollapsed(next);
-    localStorage.setItem("sidebar_collapsed", JSON.stringify(next));
+    try {
+      localStorage.setItem("sidebar_collapsed", JSON.stringify(next));
+    } catch {
+      // Ignore
+    }
   };
 
   return (
@@ -108,8 +121,8 @@ export default function AdminSidebar() {
               const Icon = item.icon;
               const isActive =
                 item.href === "/admin"
-                  ? pathname === "/admin"
-                  : pathname.startsWith(item.href);
+                  ? safePathname === "/admin"
+                  : safePathname ? safePathname.startsWith(item.href) : false;
 
               return (
                 <Link

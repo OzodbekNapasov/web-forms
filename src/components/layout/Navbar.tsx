@@ -42,6 +42,7 @@ const NAV_ITEMS = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const safePathname = pathname || "";
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -85,7 +86,7 @@ export default function Navbar() {
           {/* Desktop Quick Links */}
           <nav className="hidden md:flex items-center gap-1.5">
             <Link href="/admin">
-              <Button variant={pathname === "/admin" ? "default" : "ghost"} size="sm" className="text-xs font-semibold">
+              <Button variant={safePathname === "/admin" ? "default" : "ghost"} size="sm" className="text-xs font-semibold">
                 Bosh sahifa
               </Button>
             </Link>
@@ -96,7 +97,7 @@ export default function Navbar() {
               </Button>
             </Link>
             <Link href="/admin/settings">
-              <Button variant={pathname.startsWith("/admin/settings") ? "default" : "ghost"} size="sm" className="text-xs font-semibold">
+              <Button variant={safePathname.startsWith("/admin/settings") ? "default" : "ghost"} size="sm" className="text-xs font-semibold">
                 <Settings className="h-4 w-4 mr-1" />
                 Sozlamalar
               </Button>
