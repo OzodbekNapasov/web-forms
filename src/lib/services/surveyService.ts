@@ -26,6 +26,133 @@ export class SurveyService {
     return surveys.find((s) => s.id === idOrSlug || s.custom_url === idOrSlug) || null;
   }
 
+  public static async fetchAllSurveysFromSupabase(): Promise<Survey[]> {
+    try {
+      const supabase = createClient();
+      const { data: surveysData, error: sErr } = await supabase
+        .from("surveys")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (sErr || !surveysData) {
+        return this.getSurveys();
+      }
+
+      const { data: questionsData } = await supabase
+        .from("survey_questions")
+        .select("*")
+        .order("order_index", { ascending: true });
+
+      const { data: responsesData } = await supabase
+        .from("responses")
+        .select("survey_id");
+
+      const responseCounts: Record<string, number> = {};
+      (responsesData || []).forEach((r: any) => {
+        responseCounts[r.survey_id] = (responseCounts[r.survey_id] || 0) + 1;
+      });
+
+      const fullSurveys: Survey[] = surveysData.map((s: any) => {
+        const qList = (questionsData || [])
+          .filter((q: any) => q.survey_id === s.id)
+          .map((q: any) => ({
+            id: q.id,
+            survey_id: q.survey_id,
+            type: q.type,
+            label: q.label,
+            placeholder: q.placeholder,
+            help_text: q.help_text,
+            required: q.required,
+            order_index: q.order_index,
+            config: q.config || {},
+          }));
+
+        return {
+          id: s.id,
+          title: s.title,
+          description: s.description,
+          cover_image: s.cover_image || s.theme_config?.headerImageUrl || null,
+          status: s.status || "draft",
+          custom_url: s.custom_url,
+          questions: qList,
+          responses_count: responseCounts[s.id] || s.responses_count || 0,
+          is_multistep: s.is_multistep || false,
+          theme_config: s.theme_config || { primaryColor: "#2563EB", backgroundColor: "#020617", cardStyle: "glass", fontFamily: "Inter" },
+          created_at: s.created_at,
+          updated_at: s.updated_at,
+        };
+      });
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem(this.STORAGE_KEY_SURVEYS, JSON.stringify(fullSurveys));
+      }
+
+      return fullSurveys;
+    } catch {
+      return this.getSurveys();
+    }
+  }
+
+  public static async fetchResponsesFromSupabase(surveyId?: string): Promise<SurveyResponse[]> {
+    try {
+      const supabase = createClient();
+      let query = supabase.from("responses").select("*").order("completed_at", { ascending: false });
+      if (surveyId) {
+        query = query.eq("survey_id", surveyId);
+      }
+      const { data: respData, error } = await query;
+      if (error || !respData) return this.getResponses(surveyId);
+
+      const respIds = respData.map((r: any) => r.id);
+      let answersData: any[] = [];
+      if (respIds.length > 0) {
+        const { data: aData } = await supabase
+          .from("response_answers")
+          .select("*")
+          .in("response_id", respIds);
+        answersData = aData || [];
+      }
+
+      const fullResponses: SurveyResponse[] = respData.map((r: any) => {
+        const rAnswers = answersData
+          .filter((a: any) => a.response_id === r.id)
+          .map((a: any) => {
+            let parsedVal = a.value;
+            try {
+              if (typeof parsedVal === "string" && (parsedVal.startsWith("{") || parsedVal.startsWith("["))) {
+                parsedVal = JSON.parse(parsedVal);
+              }
+            } catch {}
+            return {
+              id: a.id,
+              response_id: a.response_id,
+              question_id: a.question_id,
+              value: parsedVal,
+            };
+          });
+
+        return {
+          id: r.id,
+          survey_id: r.survey_id,
+          submission_id: r.submission_id,
+          respondent_meta: r.respondent_meta || {},
+          status: r.status || "completed",
+          started_at: r.started_at || r.created_at,
+          completed_at: r.completed_at || r.created_at,
+          answers: rAnswers,
+        };
+      });
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem(this.STORAGE_KEY_RESPONSES, JSON.stringify(fullResponses));
+      }
+
+      return fullResponses;
+    } catch {
+      return this.getResponses(surveyId);
+    }
+  }
+
   public static async fetchSurveyFromSupabase(idOrSlug: string): Promise<Survey | null> {
     try {
       const supabase = createClient();

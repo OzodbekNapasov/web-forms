@@ -1,42 +1,55 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { SurveyService } from "@/lib/services/surveyService";
+import { SurveyResponse } from "@/types/survey";
 import { Card, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Activity, CheckCircle2, FileSpreadsheet, Edit3, ShieldCheck, User } from "lucide-react";
+import { Activity, CheckCircle2, FileSpreadsheet, Sparkles } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 
 export default function RecentActivityFeed() {
-  const activities = [
-    { title: "New Response Submitted", detail: "Submission EDU-892104 recorded for Faculty Survey", time: "5m ago", icon: CheckCircle2, color: "text-emerald-600" },
-    { title: "Google Sheets Synced", detail: "Row appended to Google Spreadsheet automatically", time: "12m ago", icon: FileSpreadsheet, color: "text-blue-600" },
-    { title: "Survey Updated", detail: "Edited conditional logic on Campus Life survey", time: "1h ago", icon: Edit3, color: "text-amber-600" },
-    { title: "Profile Security Updated", detail: "Administrator updated profile security credentials", time: "3h ago", icon: ShieldCheck, color: "text-purple-600" },
-  ];
+  const [recentResponses, setRecentResponses] = useState<SurveyResponse[]>([]);
+
+  useEffect(() => {
+    SurveyService.fetchResponsesFromSupabase().then((res) => {
+      setRecentResponses(res.slice(0, 5));
+    });
+  }, []);
 
   return (
-    <Card className="glass-card p-6 rounded-2xl space-y-4">
-      <CardTitle className="text-base font-bold flex items-center gap-2">
-        <Activity className="h-5 w-5 text-blue-600" /> Recent Institutional Activity Stream
+    <Card className="glass-card p-5 rounded-2xl border-slate-800 space-y-4">
+      <CardTitle className="text-base font-bold text-white flex items-center gap-2">
+        <Activity className="h-5 w-5 text-blue-500" /> Oxirgi Tizim Faoliyati
       </CardTitle>
 
-      <div className="space-y-3">
-        {activities.map((act, idx) => {
-          const Icon = act.icon;
-          return (
-            <div key={idx} className="flex items-start gap-3 p-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50">
-              <div className={`h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 ${act.color}`}>
-                <Icon className="h-4 w-4" />
+      <div className="space-y-2.5">
+        {recentResponses.length === 0 ? (
+          <div className="p-4 text-center text-xs text-slate-400 bg-slate-950/60 rounded-xl border border-slate-800">
+            Hozircha javoblar va faoliyat tarixi yoʻq.
+          </div>
+        ) : (
+          recentResponses.map((act) => (
+            <div
+              key={act.id}
+              className="flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-900/60 transition-colors"
+            >
+              <div className="h-8 w-8 rounded-xl bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="h-4 w-4" />
               </div>
-              <div className="flex-1 space-y-0.5">
-                <div className="flex items-center justify-between">
-                  <h5 className="text-xs font-bold text-slate-900 dark:text-white">{act.title}</h5>
-                  <span className="text-[10px] text-slate-400">{act.time}</span>
+              <div className="flex-1 space-y-0.5 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <h5 className="text-xs font-bold text-white truncate">Yangi Javob Qabul Qilindi</h5>
+                  <span className="text-[10px] text-slate-400 shrink-0">
+                    {formatDate(act.completed_at || act.started_at)}
+                  </span>
                 </div>
-                <p className="text-[11px] text-slate-500">{act.detail}</p>
+                <p className="text-[11px] text-slate-400 font-mono truncate">
+                  ID: {act.submission_id} | {act.answers?.length || 0} ta javob toʻldirildi
+                </p>
               </div>
             </div>
-          );
-        })}
+          ))
+        )}
       </div>
     </Card>
   );

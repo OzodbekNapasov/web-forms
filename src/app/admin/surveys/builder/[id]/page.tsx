@@ -76,7 +76,13 @@ export default function SurveyBuilderPage({ params }: { params: Promise<{ id: st
 
   useEffect(() => {
     const loaded = SurveyService.getSurveyById(resolvedParams.id);
-    if (loaded) setInitialSurvey(loaded);
+    if (loaded) {
+      setInitialSurvey(loaded);
+    }
+    // Always sync latest version from Supabase Cloud
+    SurveyService.fetchSurveyFromSupabase(resolvedParams.id).then((remote) => {
+      if (remote) setInitialSurvey(remote);
+    });
   }, [resolvedParams.id]);
 
   if (!initialSurvey) {

@@ -40,14 +40,20 @@ export default function SurveyResponsesPage({ params }: { params: Promise<{ id: 
   const [syncingRowId, setSyncingRowId] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadedSurvey = SurveyService.getSurveyById(resolvedParams.id);
-    if (loadedSurvey) {
-      setSurvey(loadedSurvey);
-      const res = SurveyService.getResponses(loadedSurvey.id);
-      setResponses(res);
-      const gConfig = SurveyService.getSheetsConfig(loadedSurvey.id);
-      setSheetsConfig(gConfig);
-    }
+    const loadData = async () => {
+      let loadedSurvey = SurveyService.getSurveyById(resolvedParams.id);
+      if (!loadedSurvey) {
+        loadedSurvey = await SurveyService.fetchSurveyFromSupabase(resolvedParams.id);
+      }
+      if (loadedSurvey) {
+        setSurvey(loadedSurvey);
+        const res = await SurveyService.fetchResponsesFromSupabase(loadedSurvey.id);
+        setResponses(res);
+        const gConfig = SurveyService.getSheetsConfig(loadedSurvey.id);
+        setSheetsConfig(gConfig);
+      }
+    };
+    loadData();
   }, [resolvedParams.id]);
 
   if (!survey) {

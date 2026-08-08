@@ -19,8 +19,13 @@ export default function AdminSurveysListPage() {
   const [search, setSearch] = useState("");
   const [shareSurvey, setShareSurvey] = useState<Survey | null>(null);
 
+  const loadSurveys = async () => {
+    const list = await SurveyService.fetchAllSurveysFromSupabase();
+    setSurveys(list);
+  };
+
   useEffect(() => {
-    setSurveys(SurveyService.getSurveys());
+    loadSurveys();
   }, []);
 
   const handleDelete = (id: string) => {

@@ -31,9 +31,9 @@ export default function AdminDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [shareSurvey, setShareSurvey] = useState<Survey | null>(null);
 
-  const loadDashboardData = () => {
+  const loadDashboardData = async () => {
     setIsLoading(true);
-    const loaded = SurveyService.getSurveys();
+    const loaded = await SurveyService.fetchAllSurveysFromSupabase();
     setSurveys(loaded);
     setIsLoading(false);
   };
