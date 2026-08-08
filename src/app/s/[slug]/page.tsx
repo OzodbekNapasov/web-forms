@@ -8,7 +8,7 @@ import SubmissionSuccessCard from "@/components/portal/SubmissionSuccessCard";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { GraduationCap, ArrowRight, ArrowLeft, Send, RefreshCw, AlertTriangle } from "lucide-react";
+import { GraduationCap, ArrowRight, ArrowLeft, Send, RefreshCw, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -162,26 +162,19 @@ export default function StudentSurveyPortalPage({ params }: { params: Promise<{ 
         <motion.div initial={{ opacity: 0, y: -15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
           <Card className="glass-card overflow-hidden rounded-2xl border-slate-800 shadow-2xl">
             {(survey.cover_image || survey.theme_config?.headerImageUrl) && (
-              <div className="relative h-48 sm:h-56 w-full overflow-hidden bg-slate-950 border-b border-slate-800">
-                <img
-                  src={survey.cover_image || survey.theme_config?.headerImageUrl || ""}
-                  alt={survey.title}
-                  className="h-full w-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent" />
+              <div className="p-3 pb-0">
+                <div className="relative h-48 sm:h-56 w-full overflow-hidden bg-slate-950 rounded-2xl border border-slate-800 shadow-md">
+                  <img
+                    src={survey.cover_image || survey.theme_config?.headerImageUrl || ""}
+                    alt={survey.title}
+                    className="h-full w-full object-cover rounded-2xl"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent rounded-2xl" />
+                </div>
               </div>
             )}
 
             <div className="p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-blue-400 font-bold text-xs uppercase tracking-wider">
-                  <GraduationCap className="h-4 w-4" /> TAʻLIMIY SOʻROVNOMA PORTALI
-                </div>
-                <span className="text-xs font-bold text-slate-300">
-                  {currentPageIndex + 1}-sahifa (jami {pages.length} ta)
-                </span>
-              </div>
-
               <div className="space-y-1">
                 <h1 className="text-2xl font-bold text-white leading-tight">{survey.title}</h1>
                 {survey.description && <p className="text-xs font-medium text-slate-300 leading-relaxed">{survey.description}</p>}
@@ -241,13 +234,13 @@ export default function StudentSurveyPortalPage({ params }: { params: Promise<{ 
               </Button>
             </motion.div>
           ) : (
-            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+            <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
               <Button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="h-10 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 px-6 shadow-lg shadow-emerald-600/30"
+                className="h-12 text-sm font-extrabold bg-blue-600 hover:bg-blue-700 text-white gap-2 px-8 rounded-2xl shadow-xl shadow-blue-600/40 border border-blue-400/30 transition-all"
               >
-                {isSubmitting ? "Yuborilmoqda..." : "Soʻrovnomani topshirish"} <Send className="h-4 w-4" />
+                {isSubmitting ? "Yuborilmoqda..." : "Soʻrovnomani topshirish"} <CheckCircle2 className="h-5 w-5" />
               </Button>
             </motion.div>
           )}

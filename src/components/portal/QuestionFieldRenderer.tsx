@@ -336,9 +336,10 @@ export default function QuestionFieldRenderer({
       {/* DATE / TIME / DATETIME */}
       {(q.type === "date" || q.type === "datetime") && (
         <div className="relative">
-          <Calendar className="absolute left-3.5 top-3 h-4 w-4 text-amber-400" />
+          <Calendar className="absolute left-3.5 top-3 h-4 w-4 text-white" />
           <Input
             type="date"
+            placeholder="kun.oy.yil"
             style={{ colorScheme: "dark" }}
             value={value || ""}
             onChange={(e) => onChange(q.id, e.target.value)}
@@ -349,9 +350,10 @@ export default function QuestionFieldRenderer({
 
       {q.type === "time" && (
         <div className="relative">
-          <Clock className="absolute left-3.5 top-3 h-4 w-4 text-amber-400" />
+          <Clock className="absolute left-3.5 top-3 h-4 w-4 text-white" />
           <Input
             type="time"
+            placeholder="soat:daqiqa"
             style={{ colorScheme: "dark" }}
             value={value || ""}
             onChange={(e) => onChange(q.id, e.target.value)}
