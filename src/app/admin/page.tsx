@@ -33,9 +33,14 @@ export default function AdminDashboardPage() {
 
   const loadDashboardData = async () => {
     setIsLoading(true);
-    const loaded = await SurveyService.fetchAllSurveysFromSupabase();
-    setSurveys(loaded);
-    setIsLoading(false);
+    try {
+      const loaded = await SurveyService.fetchAllSurveysFromSupabase();
+      setSurveys(Array.isArray(loaded) ? loaded : []);
+    } catch {
+      setSurveys(SurveyService.getSurveys());
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -59,9 +64,10 @@ export default function AdminDashboardPage() {
     setShareSurvey(survey);
   };
 
-  const totalSurveys = surveys.length;
-  const activeSurveys = surveys.filter((s) => s.status === "published").length;
-  const totalResponses = surveys.reduce((acc, s) => acc + (s.responses_count || 0), 0);
+  const safeSurveys = Array.isArray(surveys) ? surveys : [];
+  const totalSurveys = safeSurveys.length;
+  const activeSurveys = safeSurveys.filter((s) => s && s.status === "published").length;
+  const totalResponses = safeSurveys.reduce((acc, s) => acc + (s?.responses_count || 0), 0);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">

@@ -20,8 +20,12 @@ export default function AdminSurveysListPage() {
   const [shareSurvey, setShareSurvey] = useState<Survey | null>(null);
 
   const loadSurveys = async () => {
-    const list = await SurveyService.fetchAllSurveysFromSupabase();
-    setSurveys(list);
+    try {
+      const list = await SurveyService.fetchAllSurveysFromSupabase();
+      setSurveys(Array.isArray(list) ? list : []);
+    } catch {
+      setSurveys(SurveyService.getSurveys());
+    }
   };
 
   useEffect(() => {

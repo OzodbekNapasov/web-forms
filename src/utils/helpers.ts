@@ -5,24 +5,42 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatDate(dateInput: string | Date | null | undefined, includeTime: boolean = true): string {
-  if (!dateInput) return "Nomaʻlum";
-  const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
-  if (isNaN(date.getTime())) return "Nomaʻlum";
+export function formatDate(dateInput: any, includeTime: boolean = true): string {
+  try {
+    if (!dateInput) return "Nomaʻlum";
+    let date: Date;
 
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
+    if (dateInput instanceof Date) {
+      date = dateInput;
+    } else if (typeof dateInput === "number") {
+      date = new Date(dateInput);
+    } else if (typeof dateInput === "string") {
+      const trimmed = dateInput.trim();
+      if (!trimmed) return "Nomaʻlum";
+      date = new Date(trimmed);
+    } else {
+      return "Nomaʻlum";
+    }
 
-  if (includeTime) {
-    return `${day}.${month}.${year} ${hours}:${minutes}`;
+    if (isNaN(date.getTime())) return "Nomaʻlum";
+
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+
+    if (includeTime) {
+      return `${day}.${month}.${year} ${hours}:${minutes}`;
+    }
+    return `${day}.${month}.${year}`;
+  } catch {
+    return "Nomaʻlum";
   }
-  return `${day}.${month}.${year}`;
 }
 
 export function formatPhone(phone: string): string {
+  if (!phone) return "";
   const cleaned = phone.replace(/\D/g, "");
   if (cleaned.length === 12 && cleaned.startsWith("998")) {
     return `+998 (${cleaned.slice(3, 5)}) ${cleaned.slice(5, 8)}-${cleaned.slice(8, 10)}-${cleaned.slice(10, 12)}`;
@@ -31,6 +49,7 @@ export function formatPhone(phone: string): string {
 }
 
 export function generateSlug(text: string): string {
+  if (!text) return "survey";
   return text
     .toLowerCase()
     .trim()
