@@ -28,6 +28,7 @@ export class SurveyService {
 
   public static async fetchAllSurveysFromSupabase(): Promise<Survey[]> {
     try {
+      const localSurveys = this.getSurveys();
       const supabase = createClient();
       const { data: surveysData, error: sErr } = await supabase
         .from("surveys")
@@ -35,7 +36,7 @@ export class SurveyService {
         .order("created_at", { ascending: false });
 
       if (sErr || !surveysData) {
-        return this.getSurveys();
+        return localSurveys;
       }
 
       const { data: questionsData } = await supabase
@@ -52,7 +53,7 @@ export class SurveyService {
         responseCounts[r.survey_id] = (responseCounts[r.survey_id] || 0) + 1;
       });
 
-      const fullSurveys: Survey[] = surveysData.map((s: any) => {
+      const remoteSurveys: Survey[] = surveysData.map((s: any) => {
         const qList = (questionsData || [])
           .filter((q: any) => q.survey_id === s.id)
           .map((q: any) => ({
@@ -83,11 +84,36 @@ export class SurveyService {
         };
       });
 
+      // MERGE: Keep any local surveys that haven't synced to remote yet or are newer!
+      const mergedMap = new Map<string, Survey>();
+      remoteSurveys.forEach((s) => mergedMap.set(s.id, s));
+
+      localSurveys.forEach((local) => {
+        const remote = mergedMap.get(local.id);
+        if (!remote) {
+          // Local survey not yet on remote — KEEP IT and sync to remote!
+          mergedMap.set(local.id, local);
+          this.syncSurveyToSupabase(local).catch(() => {});
+        } else {
+          // Compare timestamps: if local is newer or has more questions, keep local!
+          const localTime = new Date(local.updated_at || local.created_at || 0).getTime();
+          const remoteTime = new Date(remote.updated_at || remote.created_at || 0).getTime();
+          if (localTime > remoteTime || (local.questions && local.questions.length > (remote.questions?.length || 0))) {
+            mergedMap.set(local.id, local);
+            this.syncSurveyToSupabase(local).catch(() => {});
+          }
+        }
+      });
+
+      const mergedSurveys = Array.from(mergedMap.values()).sort(
+        (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+      );
+
       if (typeof window !== "undefined") {
-        localStorage.setItem(this.STORAGE_KEY_SURVEYS, JSON.stringify(fullSurveys));
+        localStorage.setItem(this.STORAGE_KEY_SURVEYS, JSON.stringify(mergedSurveys));
       }
 
-      return fullSurveys;
+      return mergedSurveys;
     } catch {
       return this.getSurveys();
     }
@@ -154,6 +180,7 @@ export class SurveyService {
   }
 
   public static async fetchSurveyFromSupabase(idOrSlug: string): Promise<Survey | null> {
+    const local = this.getSurveyById(idOrSlug);
     try {
       const supabase = createClient();
       const { data: sData, error: sErr } = await supabase
@@ -162,7 +189,7 @@ export class SurveyService {
         .or(`id.eq.${idOrSlug},custom_url.eq.${idOrSlug}`)
         .maybeSingle();
 
-      if (sErr || !sData) return null;
+      if (sErr || !sData) return local;
 
       const { data: qData } = await supabase
         .from("survey_questions")
