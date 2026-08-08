@@ -322,8 +322,8 @@ export default function QuestionEditorCard({
       )}
 
       {/* Top row */}
-      <div className="flex items-center justify-between px-6 pt-5 pb-2">
-        <div className="flex items-center gap-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-3 sm:px-6 pt-4 pb-2">
+        <div className="flex flex-wrap items-center gap-2">
           <span
             className="cursor-grab active:cursor-grabbing text-slate-500 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
             {...dragHandleProps}
@@ -332,10 +332,10 @@ export default function QuestionEditorCard({
             <GripVertical className="h-4 w-4" />
           </span>
           <span className="text-xs font-bold text-slate-400">{index + 1}</span>
-          
+
           {/* Question Type Selector Pill */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold">
-            <Icon className={`h-3.5 w-3.5 ${cfg.color}`} />
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold">
+            <Icon className={`h-3.5 w-3.5 ${cfg.color} shrink-0`} />
             <select
               value={question.type}
               onChange={(e) => onUpdate({ ...question, type: e.target.value as QuestionType })}
@@ -359,16 +359,16 @@ export default function QuestionEditorCard({
           </div>
 
           {question.required && (
-            <span className="text-[10px] font-bold text-red-400 bg-red-400/10 border border-red-400/20 px-2 py-0.5 rounded-md">
+            <span className="text-[10px] font-bold text-red-400 bg-red-400/10 border border-red-400/20 px-2 py-0.5 rounded-md shrink-0">
               Majburiy
             </span>
           )}
         </div>
 
-        {/* Actions — show on hover or selected */}
+        {/* Actions — show on hover or selected (always visible on mobile touch) */}
         <div
-          className={`flex items-center gap-1 transition-opacity ${
-            isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          className={`flex items-center gap-0.5 sm:gap-1 transition-opacity ${
+            isSelected ? "opacity-100" : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
           }`}
           onClick={(e) => e.stopPropagation()}
         >
