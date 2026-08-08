@@ -60,3 +60,14 @@ export function validatePhone(value: string): boolean {
   const val = (value || "").trim();
   return /^(\+?998)?\s?\d{2}\s?\d{3}\s?\d{2}\s?\d{2}$/.test(val) || /^\+?[1-9]\d{7,14}$/.test(val);
 }
+
+export function formatAnswerDateToUzbek(value: any): string {
+  if (!value || typeof value !== "string") return value ? String(value) : "";
+  const trimmed = value.trim();
+  const match = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (match) {
+    const [, yyyy, mm, dd] = match;
+    return `${dd}.${mm}.${yyyy}`;
+  }
+  return value;
+}

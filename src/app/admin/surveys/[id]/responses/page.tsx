@@ -7,7 +7,7 @@ import { AdvancedExportService } from "@/features/responses/services/advancedExp
 import { Survey, SurveyResponse, GoogleSheetsConfig } from "@/types/survey";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatAnswerDateToUzbek } from "@/lib/utils";
 import ResponseFiltersToolbar from "@/features/responses/components/ResponseFiltersToolbar";
 import SyncQueueAdminManager from "@/features/responses/components/SyncQueueAdminManager";
 import GoogleSheetsConfigModal from "@/components/dashboard/GoogleSheetsConfigModal";
@@ -289,7 +289,11 @@ export default function SurveyResponsesPage({ params }: { params: Promise<{ id: 
                       const ans = r.answers.find((a) => a.question_id === q.id);
                       return (
                         <td key={q.id} className="p-3.5 max-w-xs truncate text-slate-300">
-                          {ans ? (Array.isArray(ans.value) ? ans.value.join(", ") : String(ans.value)) : "-"}
+                          {ans
+                            ? formatAnswerDateToUzbek(
+                                Array.isArray(ans.value) ? ans.value.join(", ") : String(ans.value)
+                              )
+                            : "-"}
                         </td>
                       );
                     })}

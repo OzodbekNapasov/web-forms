@@ -1,5 +1,5 @@
 import { Survey, SurveyResponse, GoogleSheetsConfig } from "@/types/survey";
-import { generateSubmissionId } from "@/lib/utils";
+import { generateSubmissionId, formatAnswerDateToUzbek, formatDate } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 
 const DEFAULT_SURVEYS: Survey[] = [];
@@ -418,8 +418,8 @@ export class SurveyService {
     resp: SurveyResponse
   ): Record<string, any> {
     const dateFormatted = resp.completed_at
-      ? new Date(resp.completed_at).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" })
-      : new Date().toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" });
+      ? formatDate(resp.completed_at, true)
+      : formatDate(new Date(), true);
 
     const rowData: Record<string, any> = {
       "Vaqti": dateFormatted,
@@ -443,11 +443,11 @@ export class SurveyService {
         let rawVal = "";
         if (ans && ans.value !== undefined && ans.value !== null) {
           if (Array.isArray(ans.value)) {
-            rawVal = ans.value.join(", ");
+            rawVal = ans.value.map((v) => formatAnswerDateToUzbek(v)).join(", ");
           } else if (typeof ans.value === "object") {
             rawVal = JSON.stringify(ans.value);
           } else {
-            rawVal = String(ans.value);
+            rawVal = formatAnswerDateToUzbek(String(ans.value));
           }
         }
 
