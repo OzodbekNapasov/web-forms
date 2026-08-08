@@ -84,11 +84,11 @@ export default function TopToolbar({
               <AlertCircle className="h-3 w-3" /> Xatolik
             </span>
           )}
-          {saveStatus === "idle" && <span className="text-slate-400">Avto-saqlash</span>}
+          {saveStatus === "idle" && <span className="text-slate-400">Avto-saqlash faol</span>}
         </div>
       </div>
 
-      {/* Bottom / Right Action Buttons Row (2-Row Layout on Mobile) */}
+      {/* Bottom / Right Action Buttons Row */}
       <div className="flex flex-wrap items-center justify-end gap-1.5 w-full sm:w-auto pt-1 sm:pt-0 border-t border-slate-800/80 sm:border-t-0">
         <Button
           variant="ghost"
@@ -141,19 +141,23 @@ export default function TopToolbar({
           <span className="text-xs">Koʻrish</span>
         </Button>
 
+        {/* Saqlash Tugmasi (Yorqin Zumrad Yashil Aktiv Dizayn) */}
         <Button
           size="sm"
           onClick={onSave}
-          className="h-8 text-xs px-2.5 gap-1 border border-blue-500/40 bg-slate-900 hover:bg-slate-800 text-blue-400 font-bold"
+          title="Saqlash"
+          className="h-8 text-xs px-3 gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md shadow-emerald-600/30 cursor-pointer"
         >
           <Save className="h-3.5 w-3.5" />
           <span className="text-xs">Saqlash</span>
         </Button>
 
+        {/* Ulashish Tugmasi (Yorqin Ko'k Aktiv Dizayn) */}
         <Button
           size="sm"
           onClick={onOpenShare}
-          className="h-8 text-xs px-3 gap-1 bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md shadow-blue-600/30"
+          title="Ulashish"
+          className="h-8 text-xs px-3 gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md shadow-blue-600/30 cursor-pointer"
         >
           <Share2 className="h-3.5 w-3.5" />
           <span className="text-xs">Ulashish</span>
