@@ -343,12 +343,14 @@ function SurveyBuilderCanvas({ initialSurvey }: { initialSurvey: Survey }) {
               <Input
                 value={survey.title}
                 onChange={(e) => updateSurvey({ ...survey, title: e.target.value })}
+                onFocus={(e) => e.target.select()}
                 placeholder="Soʻrovnoma sarlavhasi"
                 className="text-2xl font-bold border-none bg-transparent focus:ring-0 px-0 h-auto text-white"
               />
               <Input
                 value={survey.description || ""}
                 onChange={(e) => updateSurvey({ ...survey, description: e.target.value })}
+                onFocus={(e) => e.target.select()}
                 placeholder="Ishtirokchilar uchun qisqacha koʻrsatmalar kiriting..."
                 className="text-sm text-slate-400 border-none bg-transparent focus:ring-0 px-0 h-auto"
               />

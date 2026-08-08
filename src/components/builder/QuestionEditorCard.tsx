@@ -87,6 +87,7 @@ function AutoTextarea({
       ref={ref}
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      onFocus={(e) => e.target.select()}
       placeholder={placeholder}
       rows={1}
       className={`w-full resize-none bg-transparent border-none outline-none overflow-hidden leading-relaxed

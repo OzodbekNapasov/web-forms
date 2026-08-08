@@ -63,6 +63,7 @@ export default function TopToolbar({
         <Input
           value={survey.title}
           onChange={(e) => setSurvey({ ...survey, title: e.target.value })}
+          onFocus={(e) => e.target.select()}
           placeholder="Soʻrovnoma sarlavhasi"
           className="h-8 font-bold text-sm border-transparent hover:border-slate-800 focus:border-blue-600 bg-transparent px-2 flex-1 sm:w-64 text-white truncate"
         />
@@ -89,14 +90,14 @@ export default function TopToolbar({
       </div>
 
       {/* Bottom / Right Action Buttons Row */}
-      <div className="flex flex-wrap items-center justify-end gap-1.5 w-full sm:w-auto pt-1 sm:pt-0 border-t border-slate-800/80 sm:border-t-0">
+      <div className="flex items-center justify-end gap-1.5 w-full sm:w-auto pt-1 sm:pt-0 border-t border-slate-800/80 sm:border-t-0 overflow-x-auto">
         <Button
           variant="ghost"
           size="icon"
           disabled={!canUndo}
           onClick={onUndo}
           title="Orqaga (Ctrl+Z)"
-          className="h-8 w-8 text-slate-300"
+          className="h-8 w-8 text-slate-300 shrink-0"
         >
           <Undo className="h-3.5 w-3.5" />
         </Button>
@@ -106,7 +107,7 @@ export default function TopToolbar({
           disabled={!canRedo}
           onClick={onRedo}
           title="Oldinga (Ctrl+Shift+Z)"
-          className="h-8 w-8 text-slate-300"
+          className="h-8 w-8 text-slate-300 shrink-0"
         >
           <Redo className="h-3.5 w-3.5" />
         </Button>
@@ -115,52 +116,55 @@ export default function TopToolbar({
           variant="outline"
           size="sm"
           onClick={onOpenTemplates}
-          className="h-8 text-xs px-2.5 gap-1 border-slate-800 bg-slate-950 text-purple-400 hover:bg-slate-900"
+          title="Shablonlar"
+          className="h-8 text-xs px-2 sm:px-2.5 gap-1 border-slate-800 bg-slate-950 text-purple-400 hover:bg-slate-900 shrink-0"
         >
           <LayoutTemplate className="h-3.5 w-3.5" />
-          <span className="text-xs">Shablonlar</span>
+          <span className="hidden sm:inline text-xs">Shablonlar</span>
         </Button>
 
         <Button
           variant="outline"
           size="sm"
           onClick={onOpenThemes}
-          className="h-8 text-xs px-2.5 gap-1 border-slate-800 bg-slate-950 text-emerald-400 hover:bg-slate-900"
+          title="Dizayn"
+          className="h-8 text-xs px-2 sm:px-2.5 gap-1 border-slate-800 bg-slate-950 text-emerald-400 hover:bg-slate-900 shrink-0"
         >
           <Palette className="h-3.5 w-3.5" />
-          <span className="text-xs">Dizayn</span>
+          <span className="hidden sm:inline text-xs">Dizayn</span>
         </Button>
 
         <Button
           variant="outline"
           size="sm"
           onClick={onOpenPreview}
-          className="h-8 text-xs px-2.5 gap-1 border-slate-800 bg-slate-950 text-slate-200 hover:bg-slate-900"
+          title="Koʻrish"
+          className="h-8 text-xs px-2 sm:px-2.5 gap-1 border-slate-800 bg-slate-950 text-slate-200 hover:bg-slate-900 shrink-0"
         >
           <Eye className="h-3.5 w-3.5" />
-          <span className="text-xs">Koʻrish</span>
+          <span className="hidden sm:inline text-xs">Koʻrish</span>
         </Button>
 
-        {/* Saqlash Tugmasi (Yorqin Zumrad Yashil Aktiv Dizayn) */}
+        {/* Saqlash Tugmasi */}
         <Button
           size="sm"
           onClick={onSave}
           title="Saqlash"
-          className="h-8 text-xs px-3 gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md shadow-emerald-600/30 cursor-pointer"
+          className="h-8 text-xs px-2.5 sm:px-3 gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md shadow-emerald-600/30 cursor-pointer shrink-0"
         >
           <Save className="h-3.5 w-3.5" />
-          <span className="text-xs">Saqlash</span>
+          <span className="hidden sm:inline text-xs">Saqlash</span>
         </Button>
 
-        {/* Ulashish Tugmasi (Yorqin Ko'k Aktiv Dizayn) */}
+        {/* Ulashish Tugmasi */}
         <Button
           size="sm"
           onClick={onOpenShare}
           title="Ulashish"
-          className="h-8 text-xs px-3 gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md shadow-blue-600/30 cursor-pointer"
+          className="h-8 text-xs px-2.5 sm:px-3 gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md shadow-blue-600/30 cursor-pointer shrink-0"
         >
           <Share2 className="h-3.5 w-3.5" />
-          <span className="text-xs">Ulashish</span>
+          <span className="hidden sm:inline text-xs">Ulashish</span>
         </Button>
       </div>
     </div>
