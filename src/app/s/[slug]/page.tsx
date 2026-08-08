@@ -215,13 +215,13 @@ export default function StudentSurveyPortalPage({ params }: { params: Promise<{ 
         </AnimatePresence>
 
         {/* Action Controls */}
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }} className="flex items-center justify-between pt-4">
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }} className="flex items-center justify-between gap-3 pt-4">
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
             <Button
               variant="outline"
               onClick={handlePrev}
               disabled={currentPageIndex === 0}
-              className="h-10 text-xs font-bold border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800 gap-1.5"
+              className="h-12 text-sm font-bold border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800 gap-1.5 px-6 rounded-2xl shadow-md"
             >
               <ArrowLeft className="h-4 w-4" /> Orqaga
             </Button>
@@ -229,7 +229,7 @@ export default function StudentSurveyPortalPage({ params }: { params: Promise<{ 
 
           {currentPageIndex < pages.length - 1 ? (
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-              <Button onClick={handleNext} className="h-10 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white gap-1.5 px-6 shadow-lg shadow-blue-600/30">
+              <Button onClick={handleNext} className="h-12 text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white gap-1.5 px-6 rounded-2xl shadow-lg shadow-blue-600/30">
                 Keyingi sahifa <ArrowRight className="h-4 w-4" />
               </Button>
             </motion.div>

@@ -189,6 +189,32 @@ export default function QuestionFieldRenderer({
     }
   };
 
+  const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.strokeStyle = "#60A5FA";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+    setIsDrawing(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+    ctx.stroke();
+  };
+
   const clearCanvas = () => {
     const canvas = canvasRef.current;
     if (canvas) {
@@ -488,7 +514,10 @@ export default function QuestionFieldRenderer({
             onMouseMove={draw}
             onMouseUp={stopDrawing}
             onMouseLeave={stopDrawing}
-            className="border border-slate-700 rounded-xl bg-slate-950 cursor-crosshair w-full"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={stopDrawing}
+            className="border border-slate-700 rounded-xl bg-slate-950 cursor-crosshair w-full touch-none"
           />
           <div className="flex justify-end">
             <Button type="button" variant="ghost" size="sm" onClick={clearCanvas} className="text-xs text-red-500 gap-1 font-semibold">
