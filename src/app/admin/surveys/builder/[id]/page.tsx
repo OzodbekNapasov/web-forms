@@ -35,6 +35,8 @@ import { Button } from "@/components/ui/button";
 import { Image as ImageIcon, Trash2, Upload, Sparkles, X, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import QuestionEditorCard, { QuestionEditorCardProps } from "@/components/builder/QuestionEditorCard";
+import MobileQuestionSheet from "@/components/builder/MobileQuestionSheet";
+import { Plus } from "lucide-react";
 
 function SortableQuestionCard(props: QuestionEditorCardProps) {
   const {
@@ -109,6 +111,7 @@ function SurveyBuilderCanvas({ initialSurvey }: { initialSurvey: Survey }) {
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [isThemesOpen, setIsThemesOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
 
   // Cover image modal state
   const [isCoverModalOpen, setIsCoverModalOpen] = useState(false);
@@ -284,7 +287,7 @@ function SurveyBuilderCanvas({ initialSurvey }: { initialSurvey: Survey }) {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 hidden lg:block">
           <LeftPaletteSidebar onAddQuestion={handleAddQuestion} />
         </div>
 
@@ -462,6 +465,22 @@ function SurveyBuilderCanvas({ initialSurvey }: { initialSurvey: Survey }) {
       <QuestionLibraryModal isOpen={isLibraryOpen} onClose={() => setIsLibraryOpen(false)} onInsertQuestion={(q) => updateSurvey({ ...survey, questions: [...(survey.questions || []), q] })} />
       <ThemeSelectorModal isOpen={isThemesOpen} onClose={() => setIsThemesOpen(false)} currentTheme={survey.theme_config || { primaryColor: "#2563EB", backgroundColor: "#F8FAFC", cardStyle: "glass", fontFamily: "Inter" }} onSelectTheme={(theme) => updateSurvey({ ...survey, theme_config: theme })} />
       <ShareSurveyDialog survey={survey} isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} />
+
+      {/* Mobile Floating Action Button (+) */}
+      <button
+        onClick={() => setIsMobileSheetOpen(true)}
+        className="fixed bottom-6 right-6 z-40 lg:hidden flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white shadow-2xl shadow-blue-600/60 border-2 border-blue-400 hover:scale-105 active:scale-95 transition-all"
+        title="Yangi Savol Qoʻshish"
+      >
+        <Plus className="h-7 w-7" />
+      </button>
+
+      {/* Mobile Question Sheet */}
+      <MobileQuestionSheet
+        isOpen={isMobileSheetOpen}
+        onClose={() => setIsMobileSheetOpen(false)}
+        onAddQuestion={handleAddQuestion}
+      />
     </div>
   );
 }
