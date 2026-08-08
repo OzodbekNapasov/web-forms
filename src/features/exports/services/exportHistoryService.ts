@@ -11,28 +11,7 @@ export interface ExportRecord {
 
 const EXPORT_HISTORY_KEY = "edusurvey_export_history_v1";
 
-const DEFAULT_EXPORT_HISTORY: ExportRecord[] = [
-  {
-    id: "exp-101",
-    surveyId: "srv-faculty-eval-2026",
-    surveyTitle: "University Faculty & Teaching Evaluation 2026",
-    format: "xlsx",
-    rowCount: 142,
-    durationMs: 420,
-    status: "success",
-    createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-  },
-  {
-    id: "exp-102",
-    surveyId: "srv-campus-life-2026",
-    surveyTitle: "Campus Facilities & Student Life Survey",
-    format: "pdf",
-    rowCount: 89,
-    durationMs: 850,
-    status: "success",
-    createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
-  },
-];
+const DEFAULT_EXPORT_HISTORY: ExportRecord[] = [];
 
 export class ExportHistoryService {
   public static getHistory(): ExportRecord[] {
@@ -43,7 +22,15 @@ export class ExportHistoryService {
       return DEFAULT_EXPORT_HISTORY;
     }
     try {
-      return JSON.parse(stored);
+      const parsed: ExportRecord[] = JSON.parse(stored);
+      // Clean out legacy dummy records if any
+      const cleaned = parsed.filter(
+        (r) => !r.id.startsWith("exp-10") && r.surveyId !== "srv-faculty-eval-2026"
+      );
+      if (cleaned.length !== parsed.length) {
+        localStorage.setItem(EXPORT_HISTORY_KEY, JSON.stringify(cleaned));
+      }
+      return cleaned;
     } catch {
       return DEFAULT_EXPORT_HISTORY;
     }
@@ -73,5 +60,11 @@ export class ExportHistoryService {
       localStorage.setItem(EXPORT_HISTORY_KEY, JSON.stringify(history));
     }
     return newRecord;
+  }
+
+  public static clearHistory(): void {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(EXPORT_HISTORY_KEY, JSON.stringify([]));
+    }
   }
 }
