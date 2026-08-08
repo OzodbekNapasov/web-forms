@@ -129,24 +129,20 @@ export default function Navbar() {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 top-16 z-50 bg-black/80 backdrop-blur-md lg:hidden flex flex-col"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-x-0 top-16 bottom-0 z-50 bg-slate-950/98 backdrop-blur-3xl lg:hidden p-4 overflow-y-auto border-t border-slate-800"
           >
-            <motion.div
-              initial={{ y: -20 }}
-              animate={{ y: 0 }}
-              exit={{ y: -20 }}
-              className="glass-card m-4 p-5 rounded-3xl border-slate-800 space-y-4 max-h-[85vh] overflow-y-auto"
-            >
+            <div className="glass-card p-5 rounded-3xl border-slate-800 space-y-4 max-w-lg mx-auto bg-slate-900/90 shadow-2xl">
               <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                 <div className="flex items-center gap-2 font-bold text-white text-sm">
                   <Sparkles className="h-4 w-4 text-blue-400" /> Admin Navigatsiya Menyu
                 </div>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-xs font-bold text-slate-400 hover:text-white"
+                  className="text-xs font-bold text-slate-400 hover:text-white px-2 py-1 bg-slate-800 rounded-lg"
                 >
                   Yopish ✕
                 </button>
@@ -169,7 +165,7 @@ export default function Navbar() {
                         "flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all",
                         isActive
                           ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/40"
-                          : "text-slate-300 hover:bg-slate-900 hover:text-white"
+                          : "text-slate-300 hover:bg-slate-800 hover:text-white"
                       )}
                     >
                       <div
@@ -195,7 +191,7 @@ export default function Navbar() {
                   <PlusCircle className="h-4 w-4" /> Yangi Soʻrovnoma Yaratish
                 </Link>
               </div>
-            </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

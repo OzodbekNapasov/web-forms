@@ -57,31 +57,45 @@ export default function AdminSidebar() {
       )}
     >
       {/* Floating Glass Pill Shell */}
-      <div className="h-full glass-card p-3 rounded-[28px] border border-slate-800/80 bg-slate-950/90 backdrop-blur-2xl shadow-2xl flex flex-col justify-between overflow-hidden">
-        <div className="space-y-5">
+      <div className="h-full glass-card p-3 rounded-[28px] border border-slate-800/80 bg-slate-950/95 backdrop-blur-2xl shadow-2xl flex flex-col justify-between overflow-hidden">
+        <div className="space-y-4">
           {/* Header Row with Logo & Collapse Toggle */}
-          <div className="flex items-center justify-between px-1 py-1">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white shadow-lg shadow-blue-600/30 border border-blue-400/30">
-                <GraduationCap className="h-6 w-6" />
+          {isCollapsed ? (
+            /* Collapsed Header Layout (Centered) */
+            <div className="flex flex-col items-center gap-2 pb-2 border-b border-slate-800/80">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white shadow-lg shadow-blue-600/30 border border-blue-400/30">
+                <GraduationCap className="h-5 w-5" />
               </div>
-              {!isCollapsed && (
+              <button
+                onClick={toggleCollapse}
+                className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-900 border border-slate-800 text-blue-400 hover:text-white hover:bg-slate-800 transition-colors"
+                title="Menyuni kengaytirish"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            /* Expanded Header Layout */
+            <div className="flex items-center justify-between px-1 py-1 pb-3 border-b border-slate-800/80">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white shadow-lg shadow-blue-600/30 border border-blue-400/30">
+                  <GraduationCap className="h-6 w-6" />
+                </div>
                 <div className="animate-in fade-in duration-200">
                   <h2 className="text-sm font-bold text-white tracking-wide">EduSurvey</h2>
                   <p className="text-[10px] font-semibold text-blue-400">Admin Portal</p>
                 </div>
-              )}
-            </div>
+              </div>
 
-            {/* Toggle Button */}
-            <button
-              onClick={toggleCollapse}
-              className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shrink-0"
-              title={isCollapsed ? "Menyuni kengaytirish" : "Menyuni yigʻish"}
-            >
-              {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-            </button>
-          </div>
+              <button
+                onClick={toggleCollapse}
+                className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shrink-0"
+                title="Menyuni yigʻish"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+            </div>
+          )}
 
           {/* Navigation Items */}
           <nav className="space-y-1.5">
@@ -109,11 +123,10 @@ export default function AdminSidebar() {
                   <div
                     className={cn(
                       "flex items-center justify-center rounded-xl transition-all shrink-0",
-                      isCollapsed ? "h-8 w-8" : "h-7 w-7",
+                      isCollapsed ? "h-8 w-8 text-white" : "h-7 w-7",
                       isActive ? "bg-white/20 text-white" : "text-slate-400 group-hover:text-blue-400"
                     )}
                   >
-                    {/* Larger Icons */}
                     <Icon className={cn(isCollapsed ? "h-6 w-6" : "h-5 w-5")} />
                   </div>
 
