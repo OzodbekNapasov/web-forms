@@ -54,78 +54,80 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full glass-nav backdrop-blur-xl border-b border-slate-800">
-      <div className="w-full flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Left: Mobile Menu Toggle & Brand Logo */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden h-10 w-10 rounded-xl text-slate-300 hover:bg-slate-900"
-            title="Navigatsiya menyusi"
-          >
-            {isMobileMenuOpen ? <X className="h-6 w-6 text-blue-400" /> : <Menu className="h-6 w-6 text-white" />}
-          </Button>
-
-          <Link href="/admin" className="flex items-center gap-2.5 group">
-            <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }} className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white shadow-md shadow-blue-600/30">
-              <GraduationCap className="h-6 w-6" />
-            </motion.div>
-            <div>
-              <span className="text-base sm:text-lg font-bold tracking-tight text-white">EduSurvey</span>
-              <span className="ml-1.5 rounded-full bg-blue-950 border border-blue-800/80 px-2 py-0.5 text-[10px] font-semibold text-blue-300 hidden sm:inline-block">
-                Taʻlim Tizimi
-              </span>
-            </div>
-          </Link>
-        </div>
-
-        {/* Desktop Quick Links */}
-        <nav className="hidden md:flex items-center gap-1.5">
-          <Link href="/admin">
-            <Button variant={pathname === "/admin" ? "default" : "ghost"} size="sm" className="text-xs font-semibold">
-              Bosh sahifa
+    <>
+      <header className="sticky top-0 z-40 w-full glass-nav backdrop-blur-xl border-b border-slate-800 bg-slate-950/90">
+        <div className="w-full flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+          {/* Left: Mobile Menu Toggle & Brand Logo */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden h-10 w-10 rounded-xl text-white hover:bg-slate-900 border border-slate-800"
+              title="Navigatsiya menyusi"
+            >
+              {isMobileMenuOpen ? <X className="h-6 w-6 text-blue-400" /> : <Menu className="h-6 w-6 text-white" />}
             </Button>
-          </Link>
-          <Link href="/admin/surveys/new">
-            <Button variant="outline" size="sm" className="gap-1.5 border-blue-800 text-blue-400 text-xs font-bold bg-blue-950/40 hover:bg-blue-900/60">
-              <PlusCircle className="h-4 w-4" />
-              Yangi soʻrovnoma
-            </Button>
-          </Link>
-          <Link href="/admin/settings">
-            <Button variant={pathname.startsWith("/admin/settings") ? "default" : "ghost"} size="sm" className="text-xs font-semibold">
-              <Settings className="h-4 w-4 mr-1" />
-              Sozlamalar
-            </Button>
-          </Link>
-        </nav>
 
-        {/* Right Section: Theme & Profile */}
-        <div className="flex items-center gap-2.5">
-          <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-xl text-slate-300 hover:bg-slate-900">
-            {theme === "dark" ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5 text-slate-400" />}
-          </Button>
-
-          <Link href="/admin/profile">
-            <div className="flex items-center gap-2 rounded-xl p-1.5 hover:bg-slate-900 transition-colors">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white font-bold text-xs shadow-md">
-                AD
+            <Link href="/admin" className="flex items-center gap-2.5 group">
+              <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }} className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white shadow-md shadow-blue-600/30">
+                <GraduationCap className="h-6 w-6" />
+              </motion.div>
+              <div>
+                <span className="text-base sm:text-lg font-bold tracking-tight text-white">EduSurvey</span>
+                <span className="ml-1.5 rounded-full bg-blue-950 border border-blue-800/80 px-2 py-0.5 text-[10px] font-semibold text-blue-300 hidden sm:inline-block">
+                  Taʻlim Tizimi
+                </span>
               </div>
-              <span className="hidden sm:inline text-xs font-bold text-slate-200">
-                Admin
-              </span>
-            </div>
-          </Link>
+            </Link>
+          </div>
 
-          <Button variant="ghost" size="icon" onClick={handleLogout} className="rounded-xl text-red-400 hover:bg-red-950/40">
-            <LogOut className="h-4 w-4" />
-          </Button>
+          {/* Desktop Quick Links */}
+          <nav className="hidden md:flex items-center gap-1.5">
+            <Link href="/admin">
+              <Button variant={pathname === "/admin" ? "default" : "ghost"} size="sm" className="text-xs font-semibold">
+                Bosh sahifa
+              </Button>
+            </Link>
+            <Link href="/admin/surveys/new">
+              <Button variant="outline" size="sm" className="gap-1.5 border-blue-800 text-blue-400 text-xs font-bold bg-blue-950/40 hover:bg-blue-900/60">
+                <PlusCircle className="h-4 w-4" />
+                Yangi soʻrovnoma
+              </Button>
+            </Link>
+            <Link href="/admin/settings">
+              <Button variant={pathname.startsWith("/admin/settings") ? "default" : "ghost"} size="sm" className="text-xs font-semibold">
+                <Settings className="h-4 w-4 mr-1" />
+                Sozlamalar
+              </Button>
+            </Link>
+          </nav>
+
+          {/* Right Section: Theme & Profile */}
+          <div className="flex items-center gap-2.5">
+            <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-xl text-slate-300 hover:bg-slate-900">
+              {theme === "dark" ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5 text-slate-400" />}
+            </Button>
+
+            <Link href="/admin/profile">
+              <div className="flex items-center gap-2 rounded-xl p-1.5 hover:bg-slate-900 transition-colors">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white font-bold text-xs shadow-md">
+                  AD
+                </div>
+                <span className="hidden sm:inline text-xs font-bold text-slate-200">
+                  Admin
+                </span>
+              </div>
+            </Link>
+
+            <Button variant="ghost" size="icon" onClick={handleLogout} className="rounded-xl text-red-400 hover:bg-red-950/40">
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-      </div>
+      </header>
 
-      {/* MOBILE DRAWER SHEET (TELEFON UCHUN NAVIGATSIYA) */}
+      {/* FULL-SCREEN MOBILE OVERLAY (100% SOLID BACKGROUND - NO BLEED THROUGH) */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -133,68 +135,78 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-x-0 top-16 bottom-0 z-50 bg-slate-950/98 backdrop-blur-3xl lg:hidden p-4 overflow-y-auto border-t border-slate-800"
+            className="fixed inset-0 z-[100] bg-slate-950 lg:hidden flex flex-col p-4 overflow-y-auto"
           >
-            <div className="glass-card p-5 rounded-3xl border-slate-800 space-y-4 max-w-lg mx-auto bg-slate-900/90 shadow-2xl">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div className="flex items-center gap-2 font-bold text-white text-sm">
-                  <Sparkles className="h-4 w-4 text-blue-400" /> Admin Navigatsiya Menyu
+            {/* Top Bar inside Mobile Modal */}
+            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white font-bold shadow-md shadow-blue-600/30">
+                  <GraduationCap className="h-6 w-6" />
                 </div>
-                <button
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-xs font-bold text-slate-400 hover:text-white px-2 py-1 bg-slate-800 rounded-lg"
-                >
-                  Yopish ✕
-                </button>
+                <div>
+                  <h3 className="text-base font-bold text-white">EduSurvey Menyu</h3>
+                  <p className="text-[11px] text-blue-400 font-semibold">Taʻlim Platformasi</p>
+                </div>
               </div>
 
-              <nav className="space-y-1.5">
-                {NAV_ITEMS.map((item) => {
-                  const Icon = item.icon;
-                  const isActive =
-                    item.href === "/admin"
-                      ? pathname === "/admin"
-                      : pathname.startsWith(item.href);
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="h-9 px-3 text-xs font-bold border-slate-700 bg-slate-900 text-white hover:bg-slate-800 gap-1 rounded-xl"
+              >
+                <X className="h-4 w-4 text-red-400" /> Yopish
+              </Button>
+            </div>
 
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setIsMobileMenuOpen(false)}
+            {/* Navigation List */}
+            <div className="py-4 space-y-2 flex-1">
+              {NAV_ITEMS.map((item) => {
+                const Icon = item.icon;
+                const isActive =
+                  item.href === "/admin"
+                    ? pathname === "/admin"
+                    : pathname.startsWith(item.href);
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={cn(
+                      "flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all border",
+                      isActive
+                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30 border-blue-400/40"
+                        : "bg-slate-900/80 text-slate-200 border-slate-800/80 hover:bg-slate-900 hover:text-white"
+                    )}
+                  >
+                    <div
                       className={cn(
-                        "flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all",
-                        isActive
-                          ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/40"
-                          : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                        "flex h-9 w-9 items-center justify-center rounded-xl shrink-0",
+                        isActive ? "bg-white/20 text-white" : "bg-slate-800 text-blue-400"
                       )}
                     >
-                      <div
-                        className={cn(
-                          "flex h-7 w-7 items-center justify-center rounded-xl",
-                          isActive ? "bg-white/20 text-white" : "text-slate-400"
-                        )}
-                      >
-                        <Icon className="h-5 w-5" />
-                      </div>
-                      <span className="text-sm font-semibold">{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </nav>
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <span className="flex-1">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
 
-              <div className="pt-2 border-t border-slate-800">
-                <Link
-                  href="/admin/surveys/new"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-lg shadow-blue-600/30"
-                >
-                  <PlusCircle className="h-4 w-4" /> Yangi Soʻrovnoma Yaratish
-                </Link>
-              </div>
+            {/* Action Footer Button */}
+            <div className="pt-3 border-t border-slate-800">
+              <Link
+                href="/admin/surveys/new"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-xl shadow-blue-600/30"
+              >
+                <PlusCircle className="h-5 w-5" /> Yangi Soʻrovnoma Yaratish
+              </Link>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </header>
+    </>
   );
 }
