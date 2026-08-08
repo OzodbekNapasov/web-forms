@@ -36,6 +36,11 @@ export default function AdminSidebar() {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
+  // Hide left navigation sidebar when creating or editing a survey
+  if (pathname.includes("/builder/") || pathname.endsWith("/surveys/new")) {
+    return null;
+  }
+
   useEffect(() => {
     const saved = localStorage.getItem("sidebar_collapsed");
     if (saved !== null) {
